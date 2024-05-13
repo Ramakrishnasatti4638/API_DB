@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "YgZcA6V6PCIhQUTl2u4KvqSC3N6YBh14x1g93GaStpI=",
+  "Source": "OnlineGroceryStore",
+  "BasePath": "_content/OnlineGroceryStore",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

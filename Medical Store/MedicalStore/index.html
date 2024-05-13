@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Online Medical Store</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\main.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\header.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\new-header.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\content.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\menu-content.css'>
+    <script src='js\index.js'></script>
+</head>
+
+<body class="body">
+    <div id="container">
+        <div id="header">
+            <div class="header-left">
+                <h1 class="logo">Medicine Store</h1>
+            </div>
+            <div class="header-middle">
+                <input type="button" value="Sign Up" id="sign-up-btn" class="sign-up-btn" onclick="displaySignUp();">
+            </div>
+            <div class="header-right">
+                <input type="button" value="Sign In" id="sign-in-btn" class="sign-in-btn" onclick="displaySignIn();">
+            </div>
+        </div>
+        <div class="content">
+            <div id="sign-up-form">
+                <form onsubmit="validateSignUpForm()">
+                    <p class="heading">
+                        Sign Up
+                    </p>
+
+                    <p>
+                        <label for="uname">Name:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="uname" id="uname">
+                    </p>
+                    <p>
+                        <label for="email">Email:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="email" id="sign-up-email-id">
+                    </p>
+
+                    <p>
+                        <label for="password">Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="password" id="sign-up-password">
+                    </p>
+                    <p>
+                        <label for="confirm-password">Confirm Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="confirm-password" id="confirm-password">
+                    </p>
+                    <p>
+                        <label for="number">Phone:</label>
+
+                    </p>
+                    <p>
+                        <input type="number" name="number" id="number">
+                    </p>
+                    <p>
+                        <label for="file-upload"></label>
+                        <input type="file" id="file-upload-user">
+                    </p>
+                    <input type="button" value="Submit" class="button" onclick="takeToMainMenuBySignUp();">
+                </form>
+            </div>
+            <div id="sign-in-form">
+                <form>
+                    <p class="heading">
+                        Sign In
+                    </p>
+                    <p>
+                        <label for="email">Email:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="email" id="email-id">
+                    </p>
+                    <p>
+                        <label for="password">Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="password" id="password">
+                    </p>
+                    <input type="button" value="Submit" class="button" onclick="takeToMainMenuBySignIn();">
+                </form>
+            </div>
+        </div>
+
+    </div>
+    <!-- Menu bar -->
+    <div id="menu">
+
+        <div class="menu-bar-header">
+            <div class="menu-bar-left-section">
+                <img src="'data:image/jpg;base64,'" id="user-image">
+                Hi
+                <p id="welcome-name">&nbsp;Ramakrishna</p>
+            </div>
+            <div class="menu-bar-right-section">
+                <input type="button" value="Medicine Details" id="medicine-details-btn"
+                    onclick="displayMedicineDetails();">
+                <input type="button" value="Purchase" id="purchase-btn" onclick="displayPurchaseDetails();">
+                <input type="button" value="Cancel Medicine" id="cancel-medicine-btn" onclick="displayCancelDetails();">
+                <input type="button" value="Top Up" id="topup-btn" onclick="displayTopUp();">
+                <input type="button" value="Show Balance" id="showbalance-btn" onclick="displayShowBalanceDetails();">
+                <input type="button" value="Order Details" id="order-details-btn" onclick="displayOrderDetails();">
+            </div>
+        </div>
+        <div id="menu-content">
+            <div id="medicine-details-content">
+                <div class="medicine-details-content-heading">
+                    <h1>Medicines</h1>
+                </div>
+                <input type="button" value="ADD" onclick="displayAddForm()" id="add-btn">
+                <div id="add-form">
+                    <form>
+                        <p>
+                            <label for="add-medicine-name">Medicine Name</label>
+                        </p>
+                        <p>
+                            <input type="text" id="add-medicine-name">
+                        </p>
+                        <p>
+                            <label for="add-price">Price</label>
+                        </p>
+                        <p>
+                            <input type="number" id="add-price">
+                        </p>
+                        <p>
+                            <label for="add-quantity">Quantity</label>
+                        </p>
+                        <p>
+                            <input type="number" id="add-quantity">
+                        </p>
+                        <p>
+                            <label for="add-expiry">Expiry Date</label>
+                        </p>
+                        <p>
+                            <input type="date" id="add-expiry">
+                        </p>
+                        <p>
+                            <label for="file-upload"></label>
+                            <input type="file" id="file-upload-add">
+                        </p>
+                        <input type="button" value="ADD" onclick="addRow()" id="add-row">
+                    </form>
+                </div>
+                <table id="medicine-table">
+                    <thead>
+                        <tr>
+                            <th id="image-1">Medicine Image</th>
+                            <th>Medicine Name</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Expiry</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+            <div id="edit-form">
+                <form id="formEdit">
+                    <p>
+                        <label for="medicine-name">Medicine Name</label>
+                        <input type="text" id="medicine-name">
+                    </p>
+                    <p>
+                        <label for="medicine-price">Price</label>
+                        <input type="text" id="medicine-price">
+                    </p>
+                    <p>
+                        <label for="medicine-quantity">Quantity</label>
+                        <input type="text" id="medicine-quantity">
+                    </p>
+                    <p>
+                        <label for="medicine-expiry">Expiry</label>
+                        <input type="date" id="medicine-expiry">
+                    </p>
+                    <p>
+                        <label for="file-upload"></label>
+                        <input type="file" id="file-upload">
+                    </p>
+                    <input type="button" value="Edit" onclick="displayEditForm()">
+                </form>
+            </div>
+            <div id="purchase-content">
+                <h1>Buy Medicines</h1>
+                <table id="purchase-table">
+                    <thead>
+                        <tr>
+                            <th>Medicine Name</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Expiry</th>
+                            <th>Buy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+            </div>
+            <div id="buy-medicine">
+                <form>
+                    <p>
+                        <label for="quantity">Enter the quantity you want: </label>
+                    </p>
+                    <p>
+                        <input type="text" name="quantity" id="quantity">
+                    </p>
+                    <p>
+                        <input type="button" value="BUY" name="Buy" id="quantity-buy-button" onclick="getQuantity()">
+                    </p>
+                </form>
+            </div>
+            <div id="cancel-medicine-content">
+                <h1>Your Orders</h1>
+                <table id="cancel-table">
+                    <thead>
+                        <tr>
+                            <th>Medicine Name</th>
+                            <th>Quantity</th>
+                            <th>Cancel</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+            <div id="topup-content">
+                <form>
+                    <p>
+                        <label for="recharge">Enter the amount you want to recharge: </label>
+                    </p>
+                    <input type="number" id="amount-to-recharge">
+                    <p>
+                        <input type="button" value="Recharge" onclick="rechargeAmount()" id="recharge-btn">
+                    </p>
+
+                </form>
+            </div>
+            <div id="show-balance-content">
+                <h2>Your balance is: </h2>
+                <input type="text" id="display-balance">
+            </div>
+            <div id="order-details-content">
+                <input type="button" value="Export Data" id="export-btn" onclick="tableToCSV();">
+                <h1>Your Orders</h1>
+                <table id="order-table">
+                    <thead>
+                        <tr>
+                            <th>Medicine Name</th>
+                            <th>Quantity</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>

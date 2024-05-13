@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metro Card Management</title>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\main.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\header.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\new-header.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\content.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\menu-content.css'>
+    <script src='js\index.js'></script>
+    
+</head>
+<body>  
+    <div id="container">
+        <div id="header">
+            <div class="header-left">
+                <h1 class="logo">Metro Card</h1>
+            </div>
+            <div class="header-middle">
+                <input type="button" value="Sign Up" id="sign-up-btn" class="sign-up-btn" onclick="displaySignUp();">
+            </div>
+            <div class="header-right">
+                <input type="button" value="Sign In" id="sign-in-btn" class="sign-in-btn" onclick="displaySignIn();">
+            </div>
+        </div>
+        <div class="content">
+            <div id="sign-up-form">
+                <form onsubmit="validateSignUpForm()">
+                    <p class="heading">
+                        Sign Up
+                    </p>
+
+                    <p>
+                        <label for="uname">Name:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="uname" id="uname">
+                    </p>
+                    <p>
+                        <label for="email">Email:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="email" id="sign-up-email-id">
+                    </p>
+
+                    <p>
+                        <label for="password">Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="password" id="sign-up-password">
+                    </p>
+                    <p>
+                        <label for="confirm-password">Confirm Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="confirm-password" id="confirm-password">
+                    </p>
+                    <p>
+                        <label for="number">Phone:</label>
+
+                    </p>
+                    <p>
+                        <input type="number" name="number" id="number">
+                    </p>
+                    <input type="button" value="Submit" class="button" onclick="takeToMainMenuBySignUp();">
+                </form>
+            </div>
+            <div id="sign-in-form">
+                <form>
+                    <p class="heading">
+                        Sign In
+                    </p>
+                    <p>
+                        <label for="email">Email:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="email" id="email-id">
+                    </p>
+                    <p>
+                        <label for="password">Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="password" id="password">
+                    </p>
+                    <input type="button" value="Submit" class="button" onclick="takeToMainMenuBySignIn();">
+                </form>
+            </div>
+        </div>
+
+    </div>
+    <!-- Menu bar -->
+    <div id="menu">
+
+        <div class="menu-bar-header">
+            <div class="menu-bar-left-section">
+                <p id="welcome-name">Ramakrishna</p>
+            </div>
+            <div class="menu-bar-right-section">
+                <input type="button" value="Travel" id="purchase-btn" onclick="displayTravelDetails();">
+                <input type="button" value="Recharge" id="topup-btn" onclick="displayTopUp();">
+                <input type="button" value="Balance Check" id="showbalance-btn" onclick="displayShowBalanceDetails();">
+                <input type="button" value="Travel History" id="order-details-btn" onclick="displayTravelHistory();">
+            </div>
+        </div>
+        <div id="menu-content">
+            <div id="travel-content">
+                <div class="travel-content-heading">
+                    <h1>Travel</h1>
+                </div>
+                <table id="travel-table">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Price</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+                
+            </div>
+        
+            
+            <div id="recharge-content">
+                <form>
+                    <p>
+                        <label for="recharge">Enter the amount you want to recharge: </label>
+                    </p>
+                    <input type="number" id="amount-to-recharge">
+                    <p>
+                        <input type="button" value="Recharge" onclick="rechargeAmount()" id="recharge-btn">
+                    </p>
+
+                </form>
+            </div>
+            <div id="balance-check-content">
+                <h2>Your balance is: </h2>
+                <input type="text" id="display-balance">
+            </div>
+            <div id="travel-history-content">
+                <h1>Your Travels</h1>
+                <table id="order-table">
+                    <thead>
+                        <tr>
+                            <th>CardNumber</th>
+                            <th>FromLocation</th>
+                            <th>ToLocation</th>
+                            <th>Date</th>
+                            <th>TravelCost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

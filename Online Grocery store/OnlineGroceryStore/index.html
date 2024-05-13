@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Grocery Store</title>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\main.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\header.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\new-header.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\content.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\menu-content.css'>
+    <script src="js\index.js"></script>
+</head>
+
+<body>
+    <div id="container">
+        <div id="header">
+            <div class="header-left">
+                <h1 class="logo">Grocery Store</h1>
+            </div>
+            <div class="header-middle">
+                <input type="button" value="Sign Up" id="sign-up-btn" class="sign-up-btn" onclick="displaySignUp();">
+            </div>
+            <div class="header-right">
+                <input type="button" value="Sign In" id="sign-in-btn" class="sign-in-btn" onclick="displaySignIn();">
+            </div>
+        </div>
+        <div class="content">
+            <div id="sign-up-form">
+                <form onsubmit="validateSignUpForm()">
+                    <p class="heading">
+                        Sign Up
+                    </p>
+
+                    <p>
+                        <label for="uname">Name:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="uname" id="uname">
+                    </p>
+                    <p>
+                        <label for="email">Email:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="email" id="sign-up-email-id">
+                    </p>
+
+                    <p>
+                        <label for="password">Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="password" id="sign-up-password">
+                    </p>
+                    <p>
+                        <label for="confirm-password">Confirm Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="confirm-password" id="confirm-password">
+                    </p>
+                    <p>
+                        Upload Your Image<br>
+                        <label for="file-upload"></label>
+                        <input type="file" id="file-upload-user">
+                    </p>
+                    <input type="button" value="Submit" class="button" onclick="takeToMainMenuBySignUp();">
+                </form>
+            </div>
+            <div id="sign-in-form">
+                <form>
+                    <p class="heading">
+                        Sign In
+                    </p>
+                    <p>
+                        <label for="email">Email:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="email" id="email-id">
+                    </p>
+                    <p>
+                        <label for="password">Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="password" id="password">
+                    </p>
+                    <input type="button" value="Submit" class="button" onclick="takeToMainMenuBySignIn();">
+                </form>
+            </div>
+        </div>
+
+    </div>
+    <!-- Menu bar -->
+    <div id="menu">
+
+        <div class="menu-bar-header">
+            <div class="menu-bar-left-section">
+                <!-- <img src="'data:image/jpg;base64,'" id="user-image"> -->
+                Hi
+                <p id="welcome-name">&nbsp;Ramakrishna</p>
+            </div>
+            <div class="menu-bar-right-section">
+                <input type="button" value="Stock" id="stock-details-btn" onclick="displayStockDetails();">
+                <input type="button" value="Purchase" id="purchase-btn" onclick="displayPurchaseDetails();">
+                <input type="button" value="Cart" id="cart-details-btn" onclick="displayCartDetails();">
+                <input type="button" value="Top Up" id="topup-btn" onclick="displayTopUp();">
+                <input type="button" value="Show Balance" id="showbalance-btn" onclick="displayShowBalanceDetails();">
+                <input type="button" value="Order Details" id="order-details-btn" onclick="displayOrderDetailsTable();">
+            </div>
+        </div>
+        <div id="menu-content">
+            <div id="stock-details-content">
+                <div class="stock-details-content-heading">
+                    <h1>Stock Available</h1>
+                </div>
+                <input type="button" value="ADD" onclick="displayAddForm()" id="add-btn">
+                <div id="add-form">
+                    <form>
+                        <p>
+                            <label for="add-stock-name">Item Name</label>
+                        </p>
+                        <p>
+                            <input type="text" id="add-stock-name">
+                        </p>
+                        <p>
+                            <label for="add-price">Price</label>
+                        </p>
+                        <p>
+                            <input type="number" id="add-price">
+                        </p>
+                        <p>
+                            <label for="add-quantity">Quantity</label>
+                        </p>
+                        <p>
+                            <input type="number" id="add-quantity">
+                        </p>
+                        <p>
+                            <label for="add-expiry">Expiry Date</label>
+                        </p>
+                        <p>
+                            <input type="date" id="add-expiry">
+                        </p>
+                        <p>
+                            <label for="file-upload"></label>
+                            <input type="file" id="file-upload-add">
+                        </p>
+                        <input type="button" value="ADD" onclick="addRow()" id="add-row">
+                    </form>
+                </div>
+                <table id="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Stock Image</th>
+                            <th>Item Name</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Expiry</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+            <div id="edit-form">
+                <form id="formEdit">
+                    <p>
+                        <label for="item-name">Item Name</label>
+                        <input type="text" id="item-name">
+                    </p>
+                    <p>
+                        <label for="item-price">Price</label>
+                        <input type="text" id="item-price">
+                    </p>
+                    <p>
+                        <label for="item-quantity">Quantity</label>
+                        <input type="text" id="item-quantity">
+                    </p>
+                    <p>
+                        <label for="item-expiry">Expiry</label>
+                        <input type="date" id="item-expiry">
+                    </p>
+                    <p>
+                        <label for="file-upload"></label>
+                        <input type="file" id="file-upload">
+                    </p>
+                    <input type="button" value="Edit" onclick="displayEditForm()">
+                </form>
+            </div>
+            <div id="purchase-content-1">
+                <div class="purchase-content">
+                    <div class="card-view">
+                        <!-- <h1>Buy Products</h1> -->
+                        <div class="item-1">
+                            <div class="pic">
+                                <img src="" class="image" id="imageid-1">
+                            </div>
+                            <div class="description">
+                                <p>
+                                    Name: <span id="name1"></span>
+                                </p>
+                                <p>
+                                    Quantity Available: <span id="quantity1"></span> 
+                                </p>
+                                <p>
+                                    Price : <span id="price1"></span> 
+                                </p>
+                                <input type="button" onclick="setProductIdNew(id)" value="Add To Cart" id="cartButton1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-view">
+                        <!-- <h1>Buy Products</h1> -->
+                        <div class="item-1">
+                            <div class="pic">
+                                <img src="" class="image" id="imageid-2">
+                            </div>
+                            <div class="description">
+                                <p>
+                                    Name: <span id="name2"></span>
+                                </p>
+                                <p>
+                                    Quantity Available: <span id="quantity2"></span> 
+                                </p>
+                                <p>
+                                    Price : <span id="price2"></span> 
+                                </p>
+                                <input type="button" onclick="setProductIdNew(id)" value="Add To Cart" id="cartButton2">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-view">
+                        <!-- <h1>Buy Products</h1> -->
+                        <div class="item-1">
+                            <div class="pic">
+                                <img src="" class="image" id="imageid-3">
+                            </div>
+                            <div class="description">
+                                <p>
+                                    Name: <span id="name3"></span>
+                                </p>
+                                <p>
+                                    Quantity Available: <span id="quantity3"></span> 
+                                </p>
+                                <p>
+                                    Price : <span id="price3"></span> 
+                                </p>
+                                <input type="button" onclick="setProductIdNew(id)" value="Add To Cart" id="cartButton3">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-view">
+                        <!-- <h1>Buy Products</h1> -->
+                        <div class="item-1">
+                            <div class="pic">
+                                <img src="" class="image" id="imageid-4">
+                            </div>
+                            <div class="description">
+                                <p>
+                                    Name: <span id="name4"></span>
+                                </p>
+                                <p>
+                                    Quantity Available: <span id="quantity4"></span> 
+                                </p>
+                                <p>
+                                    Price : <span id="price4"></span> 
+                                </p>
+                                <input type="button" onclick="setProductIdNew(id)" value="Add To Cart" id="cartButton4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-view">
+                        <!-- <h1>Buy Products</h1> -->
+                        <div class="item-1">
+                            <div class="pic">
+                                <img src="" class="image" id="imageid-5">
+                            </div>
+                            <div class="description">
+                                <p>
+                                    Name: <span id="name5"></span>
+                                </p>
+                                <p>
+                                    Quantity Available: <span id="quantity5"></span> 
+                                </p>
+                                <p>
+                                    Price : <span id="price5"></span> 
+                                </p>
+                                <input type="button" onclick="setProductIdNew(id)" value="Add To Cart" id="cartButton5">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-view">
+                        <!-- <h1>Buy Products</h1> -->
+                        <div class="item-1">
+                            <div class="pic">
+                                <img src="" class="image" id="imageid-6">
+                            </div>
+                            <div class="description">
+                                <p>
+                                    Name: <span id="name6"></span>
+                                </p>
+                                <p>
+                                    Quantity Available: <span id="quantity6"></span> 
+                                </p>
+                                <p>
+                                    Price : <span id="price6"></span> 
+                                </p>
+                                <input type="button" onclick="setProductIdNew(id)" value="Add To Cart" id="cartButton6">
+                            </div>
+                        </div>
+                    </div>
+            
+                <!-- <table id="purchase-table">
+                    <thead>
+                        <tr>
+                            <th>Product Image</th>
+                            <th>Item Name</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Expiry</th>
+                            <th>Buy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table> -->
+                </div>
+            </div>
+            <div id="buy-product">
+                <form>
+                    <p>
+                        <label for="quantity">Enter the quantity you want: </label>
+                    </p>
+                    <p>
+                        <input type="text" name="quantity" id="quantity">
+                    </p>
+                    <p>
+                        <input type="button" value="BUY" name="Buy" id="quantity-buy-button" onclick="getQuantity()">
+                    </p>
+                </form>
+            </div>
+            <div id="cart-content">
+                <h1>Your Orders</h1>
+                <table id="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+                <input type="button" value="BUY" onclick="buyProducts()">
+            </div>
+            <div id="topup-content">
+                <form>
+                    <p>
+                        <label for="recharge">Enter the amount you want to recharge: </label>
+                    </p>
+                    <input type="number" id="amount-to-recharge">
+                    <p>
+                        <input type="button" value="Recharge" onclick="rechargeAmount()" id="recharge-btn">
+                    </p>
+
+                </form>
+            </div>
+            <div id="show-balance-content">
+                <h2>Your balance is: </h2>
+                <input type="text" id="display-balance">
+            </div>
+            <div id="order-details-content">
+                <!-- <input type="button" value="Export Data" id="export-btn" onclick="tableToCSV();"> -->
+                <h1>Your Orders</h1>
+
+                <!-- <table id="order-table"> -->
+                    <!-- <thead>
+                        <tr>
+                            <th>OrderID</th>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            
+                        </tr> -->
+                        <!-- <tr>
+                            <th>Purchase Date</th>
+                            <th>Purchase Status</th>
+                            <th>Total Price</th>
+                            
+                        </tr> -->
+                    <!-- </thead>
+                    <tbody>
+
+                    </tbody> -->
+                    <!-- <thead>
+                        <th>OrderID</th>
+                        <th>Items</th>
+                        <th>Purchase Date</th>
+                        <th>Total Price</th>
+                        <th>Download</th>
+                    </thead>
+                    <tbody>
+
+                    </tbody> -->
+                <!-- </table> -->
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

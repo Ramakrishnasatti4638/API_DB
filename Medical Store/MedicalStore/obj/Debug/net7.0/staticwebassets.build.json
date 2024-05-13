@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "E2TBLYUk0pUWCUDTmjtjvjZWMLQVFfrn05RTPb9jkDY=",
+  "Source": "MedicalStore",
+  "BasePath": "_content/MedicalStore",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Syncfusion Library</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\main.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\header.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\new-header.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\content.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='css\menu-content.css'>
+    <script src='js\index.js'></script>
+</head>
+
+<body class="body">
+    <div id="container">
+        <div id="header">
+            <div class="header-left">
+                <h1 class="logo">Syncfusion Library</h1>
+            </div>
+            <div class="header-middle">
+                <input type="button" value="Sign Up" id="sign-up-btn" class="sign-up-btn" onclick="displaySignUp();">
+            </div>
+            <div class="header-right">
+                <input type="button" value="Sign In" id="sign-in-btn" class="sign-in-btn" onclick="displaySignIn();">
+            </div>
+        </div>
+        <div class="content">
+            <div id="sign-up-form">
+                <form onsubmit="validateSignUpForm()">
+                    <p class="heading">
+                        Sign Up
+                    </p>
+
+                    <p>
+                        <label for="uname">Name:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="uname" id="uname">
+                    </p>
+                    <p>
+                        <label for="email">Email:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="email" id="sign-up-email-id">
+                    </p>
+
+                    <p>
+                        <label for="password">Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="password" id="sign-up-password">
+                    </p>
+                    <p>
+                        <label for="confirm-password">Confirm Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="confirm-password" id="confirm-password">
+                    </p>
+                    <p>
+                        <label for="number">Phone:</label>
+
+                    </p>
+                    <p>
+                        <input type="number" name="number" id="number">
+                    </p>
+                    <p>
+                        <label for="gender">Gender</label>
+                    </p>
+                    <p>
+                        <input type="radio" name="gender" value="Male" id="gender-male" checked>Male
+                        <input type="radio" name="gender" value="Female" id="gender-female">Female
+                    </p>
+                    <p>
+                        <label for="department">Department</label>
+                    </p>
+                    <p>
+                        <select id="department">
+                            <option value="CSE">CSE</option>
+                            <option value="EEE">EEE</option>
+                            <option value="MECH">MECH</option>
+                            <option value="ECE">ECE</option>
+                        </select>
+                    </p>
+                    <input type="button" value="Submit" class="button" onclick="takeToMainMenuBySignUp();">
+                </form>
+            </div>
+            <div id="sign-in-form">
+                <form>
+                    <p class="heading">
+                        Sign In
+                    </p>
+                    <p>
+                        <label for="email">Email:</label>
+
+                    </p>
+                    <p>
+                        <input type="text" name="email" id="email-id">
+                    </p>
+                    <p>
+                        <label for="password">Password:</label>
+
+                    </p>
+                    <p>
+                        <input type="password" name="password" id="password">
+                    </p>
+                    <input type="button" value="Submit" class="button" onclick="takeToMainMenuBySignIn();">
+                </form>
+            </div>
+        </div>
+
+    </div>
+    <!-- Menu bar -->
+    <div id="menu">
+
+        <div class="menu-bar-header">
+            <div class="menu-bar-left-section">
+                <p id="welcome-name">Ramakrishna</p>
+            </div>
+            <div class="menu-bar-right-section">
+                <input type="button" value="Borrow Book" id="purchase-btn" onclick="displayBorrowBook();">
+                <input type="button" value="Return Book" id="cancel-medicine-btn" onclick="displayReturnBook();">
+                <input type="button" value="Recharge" id="topup-btn" onclick="displayTopUp();">
+                <input type="button" value="Show Balance" id="showbalance-btn" onclick="displayShowBalanceDetails();">
+                <input type="button" value="Borrowed History" id="order-details-btn"
+                    onclick="displayBorrowedHistory();">
+            </div>
+        </div>
+        <div id="menu-content">
+
+
+            <div id="borrow-content">
+                <h1>Buy Book</h1>
+                <input type="button" value="ADD" onclick="displayAddForm()" id="add-btn">
+                <table id="borrow-table">
+                    <thead>
+                        <tr>
+                            <th>Book Name</th>
+                            <th>Author Name</th>
+                            <th>Book Count</th>
+                            <th>Buy</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+                <div id="add-form">
+                    <form>
+                        <p>
+                            <label for="book-name">Book Name</label>
+                        </p>
+                        <p>
+                            <input type="text" name="book-name" id="book-name">
+                        </p>
+                        <p>
+                            <label for="author-name">Author Name</label>
+                        </p>
+                        <p>
+                            <input type="text" name="author-name" id="author-name">
+                        </p>
+                        <p>
+                            <label for="book-count">Book Count</label>
+                        </p>
+                        <p>
+                            <input type="text" name="book-count" id="book-count">
+                        </p>
+                        <input type="button" value="ADD" onclick="AddBook()">
+                    </form>
+
+                </div>
+                <!-- <div id="edit-form">
+                    <form>
+                        <p>
+                            <label for="book-name">Book Name</label>
+                        </p>
+                        <p>
+                            <input type="text" name="book-name" id="book-name-edit">
+                        </p>
+                        <p>
+                            <label for="author-name">Author Name</label>
+                        </p>
+                        <p>
+                            <input type="text" name="author-name" id="author-name-edit">
+                        </p>
+                        <p>
+                            <label for="book-count">Book Count</label>
+                        </p>
+                        <p>
+                            <input type="text" name="book-count" id="book-count-edit">
+                        </p>
+                        <input type="button" value="ADD" onclick="EditBook()">
+                    </form>
+
+                </div> -->
+            </div>
+            <div id="buy-book">
+                <form>
+                    <p>
+                        <label for="quantity">Enter the quantity you want: </label>
+                    </p>
+                    <p>
+                        <input type="text" name="quantity" id="quantity">
+                    </p>
+                    <p>
+                        <input type="button" value="BUY" name="Buy" id="quantity-buy-button" onclick="getQuantity()">
+                    </p>
+                </form>
+            </div>
+            <div id="return-book-content">
+                <h1>Your Orders</h1>
+                <table id="return-table">
+                    <thead>
+                        <tr>
+                            <th>Book ID</th>
+                            <th>Borrowed Date</th>
+                            <th>Book Count</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+            <div id="recharge-content">
+                <form>
+                    <p>
+                        <label for="recharge">Enter the amount you want to recharge: </label>
+                    </p>
+                    <input type="number" id="amount-to-recharge">
+                    <p>
+                        <input type="button" value="Recharge" onclick="rechargeAmount()" id="recharge-btn">
+                    </p>
+
+                </form>
+            </div>
+            <div id="show-balance-content">
+                <h2>Your balance is: </h2>
+                <input type="text" id="display-balance">
+            </div>
+            <div id="borrow-history-content">
+                <h1>Your Orders</h1>
+                <table id="order-table">
+                    <thead>
+                        <tr>
+                            <th>Book ID</th>
+                            <th>Borrowed Date</th>
+                            <th>Book Count</th>
+                            <th>Status</th>
+                            <th>Paid Fine Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>

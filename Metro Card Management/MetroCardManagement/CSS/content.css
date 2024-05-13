@@ -1,0 +1,40 @@
+.content{
+    display: flex;
+    /* align-items: center; */
+    justify-content: center;
+    height: 100vh;
+}
+form{
+    border: none;
+    border: 1px solid rgb(152, 152, 213);
+    box-shadow: 0 0 10px #fff;
+    width: 100%;
+    padding: 2rem;
+}
+#sign-up-form input,#sign-in-form input{
+    width: 350px;
+    height: 2rem;
+    margin-bottom: 1rem;
+    margin-top: .5rem;
+}
+#sign-up-form{
+    display: none;
+    align-items: center;
+}
+.heading{
+    text-align: center;
+}
+#sign-up-form p,#sign-in-form p{
+    color: white;
+}
+#sign-in-form{
+    display: none;
+    align-items: center;
+}
+#sign-up-form .button,#sign-in-form .button{
+    background-color: transparent;
+    border: 1px solid rgb(154, 154, 235);
+    color: white;
+    font-weight: bold;
+    font-size: 1.5rem;
+}

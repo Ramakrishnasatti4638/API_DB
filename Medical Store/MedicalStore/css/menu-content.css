@@ -1,0 +1,86 @@
+#menu-content{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    
+}
+table,tr,td,th{
+    border: 3px solid black;
+    border-collapse: collapse;    
+}
+.image{
+    width:100%
+}
+tr{
+    height: 75px;
+}
+td{
+    width: 150px;
+    text-align: center;
+}
+td input{
+    width: 50%;
+    background-color: transparent;
+    color: white;
+    margin-top: .5rem;
+    border: 1px solid rgb(185, 185, 185);
+    border-radius: .2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+#add-btn
+{
+    width: 25%;
+    background-color: transparent;
+    color: white;
+    border: 1px solid rgb(185, 185, 185);
+    border-radius: .2rem;
+    margin: 2rem;
+    font-weight: bold;
+    padding: 1rem;
+    cursor: pointer;
+}
+#recharge-btn
+{
+    width: 35%;
+    background-color: transparent;
+    color: white;
+    border: 1px solid rgb(185, 185, 185);
+    border-radius: .2rem;
+    margin-top : 1rem;
+    font-weight: bold;
+    padding: 1rem;
+    cursor: pointer;
+}
+#add-form p{
+    margin: .5rem;
+}
+#add-row
+{
+    margin: .5rem;
+    width: 35%;
+    padding: .5rem;
+    font-weight: bold;
+    color: white;
+    background-color: transparent;
+    border: 1px solid rgb(185, 185, 185);
+    border-radius: .2rem;
+}
+#medicine-details-content,#purchase-content,#cancel-medicine-content,#order-details-content,#topup-content,#show-balance-content,#buy-medicine,#top-up,#user-balance,#edit-form
+{
+    display: none;
+    flex-direction: column;
+    align-items: center;
+}
+#export-btn{
+    width: 35%;
+    background-color: transparent;
+    color: white;
+    border: 1px solid rgb(185, 185, 185);
+    border-radius: .2rem;
+    margin-top : 1rem;
+    font-weight: bold;
+    padding: 1rem;
+    cursor: pointer;
+}
