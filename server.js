@@ -41,6 +41,23 @@ app.post('/api/notes', (req, res) => {
   }
 });
 
+app.put('/api/notes/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, body } = req.body;
+    const update = db.prepare('UPDATE notes SET title = ?, body = ? WHERE id = ?');
+    const result = update.run(title || 'Untitled', body || '', id);
+    if (result.changes === 0) {
+      res.status(404).json({ error: 'Note not found' });
+    } else {
+      const note = db.prepare('SELECT * FROM notes WHERE id = ?').get(id);
+      res.json(note);
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.delete('/api/notes/:id', (req, res) => {
   try {
     const { id } = req.params;

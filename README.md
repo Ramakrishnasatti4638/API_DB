@@ -1,17 +1,18 @@
-# Notes API Backend
+# Notes API
 
-Express.js REST API with SQLite database (better-sqlite3) for a note-taking application.
+A simple RESTful API for managing notes built with Express.js and SQLite (better-sqlite3).
 
 ## Features
 
-- **SQLite Database**: Persistent storage using better-sqlite3
-- **RESTful API**: Clean API endpoints for note management
-- **CORS Enabled**: Works with frontend on different port
+- **GET /api/notes** - Retrieve all notes (ordered by creation date, newest first)
+- **POST /api/notes** - Create a new note
+- **PUT /api/notes/:id** - Update an existing note
+- **DELETE /api/notes/:id** - Delete a note
 
 ## Database Schema
 
 ```sql
-notes (
+CREATE TABLE notes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   body TEXT NOT NULL,
@@ -19,74 +20,48 @@ notes (
 )
 ```
 
-## API Endpoints
+## Setup
 
-### GET /api/notes
-Returns all notes ordered by creation date (newest first)
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "title": "My Note",
-    "body": "Note content",
-    "created_at": "2026-06-17 06:54:34"
-  }
-]
-```
-
-### POST /api/notes
-Creates a new note
-
-**Request Body:**
-```json
-{
-  "title": "Note Title",
-  "body": "Note content"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "title": "Note Title",
-  "body": "Note content",
-  "created_at": "2026-06-17 06:54:34"
-}
-```
-
-### DELETE /api/notes/:id
-Deletes a note by ID
-
-**Response:**
-```json
-{
-  "message": "Note deleted successfully"
-}
-```
-
-## Installation
-
+1. Install dependencies:
 ```bash
 npm install
 ```
 
-## Usage
-
+2. Start the server:
 ```bash
 npm start
 ```
 
-Server runs on `http://localhost:3001`
+The API will be running at `http://localhost:3001`
 
-## Dependencies
+## Usage Examples
 
-- express: Web framework
-- better-sqlite3: SQLite database driver
-- cors: Enable CORS for frontend communication
+### Get all notes
+```bash
+curl http://localhost:3001/api/notes
+```
 
-## Data Persistence
+### Create a note
+```bash
+curl -X POST http://localhost:3001/api/notes \
+  -H "Content-Type: application/json" \
+  -d '{"title":"My Note","body":"Note content here"}'
+```
 
-Notes are stored in `notes.db` SQLite database file. Data persists across server restarts.
+### Update a note
+```bash
+curl -X PUT http://localhost:3001/api/notes/1 \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Updated Title","body":"Updated content"}'
+```
+
+### Delete a note
+```bash
+curl -X DELETE http://localhost:3001/api/notes/1
+```
+
+## Technologies
+
+- **Express.js** - Web framework
+- **better-sqlite3** - Fast SQLite database driver
+- **CORS** - Enable cross-origin requests
