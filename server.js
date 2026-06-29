@@ -82,6 +82,15 @@ app.post('/submit', (req, res) => {
   }
 });
 
+// Messages endpoint
+app.get('/messages', (req, res) => {
+  res.json([
+    { id: 1, text: 'Hello from the backend!', timestamp: new Date().toISOString() },
+    { id: 2, text: 'This is message number 2', timestamp: new Date().toISOString() },
+    { id: 3, text: 'Node.js backend working perfectly', timestamp: new Date().toISOString() }
+  ]);
+});
+
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
 });
