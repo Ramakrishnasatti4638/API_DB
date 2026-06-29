@@ -56,6 +56,16 @@ app.delete('/api/notes/:id', (req, res) => {
   }
 });
 
+// Messages endpoint
+app.get('/messages', (req, res) => {
+  const messages = [
+    { id: 1, text: 'Hello from the backend!', timestamp: new Date().toISOString() },
+    { id: 2, text: 'This is a Node.js API', timestamp: new Date().toISOString() },
+    { id: 3, text: 'Built with Express', timestamp: new Date().toISOString() }
+  ];
+  res.json(messages);
+});
+
 // Quiz scoring endpoint
 const ANSWER_KEY = ['A', 'B', 'C', 'A', 'D'];
 
