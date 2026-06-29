@@ -56,6 +56,17 @@ app.delete('/api/notes/:id', (req, res) => {
   }
 });
 
+// Messages endpoint
+app.get('/messages', (req, res) => {
+  const messages = [
+    { id: 1, text: 'Hello from the backend!', timestamp: '2024-01-15T10:30:00Z' },
+    { id: 2, text: 'This is message number 2', timestamp: '2024-01-15T11:00:00Z' },
+    { id: 3, text: 'Node.js + Express = ❤️', timestamp: '2024-01-15T11:30:00Z' },
+    { id: 4, text: 'Building APIs is fun!', timestamp: '2024-01-15T12:00:00Z' }
+  ];
+  res.json(messages);
+});
+
 // Quiz scoring endpoint
 const ANSWER_KEY = ['A', 'B', 'C', 'A', 'D'];
 
