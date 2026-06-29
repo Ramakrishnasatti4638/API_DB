@@ -4,7 +4,7 @@ const Database = require('better-sqlite3');
 const path = require('path');
 
 const app = express();
-const PORT = 3001;
+const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -51,6 +51,32 @@ app.delete('/api/notes/:id', (req, res) => {
     } else {
       res.json({ message: 'Note deleted successfully' });
     }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Quiz scoring endpoint
+const ANSWER_KEY = ['A', 'B', 'C', 'A', 'D'];
+
+app.post('/submit', (req, res) => {
+  try {
+    const { answers } = req.body;
+    
+    if (!Array.isArray(answers)) {
+      return res.status(400).json({ error: 'Answers must be an array' });
+    }
+    
+    let score = 0;
+    const total = ANSWER_KEY.length;
+    
+    for (let i = 0; i < ANSWER_KEY.length; i++) {
+      if (answers[i] === ANSWER_KEY[i]) {
+        score++;
+      }
+    }
+    
+    res.json({ score, total });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
