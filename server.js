@@ -82,6 +82,16 @@ app.post('/submit', (req, res) => {
   }
 });
 
+// Messages endpoint
+app.get('/messages', (req, res) => {
+  const messages = [
+    { id: 1, text: 'Hello from the backend!', timestamp: '2024-01-15T10:00:00Z' },
+    { id: 2, text: 'This is a Node.js API', timestamp: '2024-01-15T10:05:00Z' },
+    { id: 3, text: 'Messages are returned as JSON', timestamp: '2024-01-15T10:10:00Z' }
+  ];
+  res.json(messages);
+});
+
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
 });
