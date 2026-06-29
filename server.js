@@ -56,6 +56,18 @@ app.delete('/api/notes/:id', (req, res) => {
   }
 });
 
+// Messages endpoint
+const messages = [
+  { id: 1, author: 'Alice', text: 'Hello from the API!', timestamp: '2024-01-01T10:00:00Z' },
+  { id: 2, author: 'Bob',   text: 'Node.js + Express is great.', timestamp: '2024-01-01T10:05:00Z' },
+  { id: 3, author: 'Carol', text: 'Fetching data from a frontend is easy.', timestamp: '2024-01-01T10:10:00Z' },
+  { id: 4, author: 'Dave',  text: 'This message list is served on port 3000.', timestamp: '2024-01-01T10:15:00Z' },
+];
+
+app.get('/messages', (req, res) => {
+  res.json(messages);
+});
+
 // Quiz scoring endpoint
 const ANSWER_KEY = ['A', 'B', 'C', 'A', 'D'];
 
