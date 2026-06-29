@@ -56,6 +56,21 @@ app.delete('/api/notes/:id', (req, res) => {
   }
 });
 
+// Messages endpoint
+app.get('/messages', (req, res) => {
+  try {
+    const messages = [
+      { id: 1, text: 'Hello from the backend!', timestamp: new Date().toISOString() },
+      { id: 2, text: 'This is message number 2', timestamp: new Date().toISOString() },
+      { id: 3, text: 'Welcome to the messaging app', timestamp: new Date().toISOString() },
+      { id: 4, text: 'Node.js backend is working!', timestamp: new Date().toISOString() }
+    ];
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Quiz scoring endpoint
 const ANSWER_KEY = ['A', 'B', 'C', 'A', 'D'];
 
