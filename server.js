@@ -56,6 +56,15 @@ app.delete('/api/notes/:id', (req, res) => {
   }
 });
 
+app.get('/metrics', (req, res) => {
+  const metrics = {
+    cpu: parseFloat((Math.random() * 100).toFixed(2)),
+    memory: parseFloat((Math.random() * 100).toFixed(2)),
+    requests_per_second: parseFloat((Math.random() * 1000).toFixed(2))
+  };
+  res.json(metrics);
+});
+
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
 });
