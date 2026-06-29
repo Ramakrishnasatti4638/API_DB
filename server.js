@@ -56,6 +56,15 @@ app.delete('/api/notes/:id', (req, res) => {
   }
 });
 
+app.get('/messages', (req, res) => {
+  const messages = [
+    { id: 1, text: 'Hello from the backend!', author: 'Server' },
+    { id: 2, text: 'This is a message API', author: 'System' },
+    { id: 3, text: 'Welcome to the app!', author: 'Admin' }
+  ];
+  res.json(messages);
+});
+
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
 });
