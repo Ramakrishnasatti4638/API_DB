@@ -178,6 +178,20 @@ app.post('/submit', (req, res) => {
   }
 });
 
+// Products endpoint
+const PRODUCTS = [
+  { id: 1, name: 'Wireless Headphones', price: 79.99 },
+  { id: 2, name: 'Smart Watch', price: 199.99 },
+  { id: 3, name: 'Bluetooth Speaker', price: 49.99 },
+  { id: 4, name: 'Laptop Stand', price: 34.99 },
+  { id: 5, name: 'USB-C Hub', price: 29.99 },
+  { id: 6, name: 'Mechanical Keyboard', price: 129.99 }
+];
+
+app.get('/api/products', (req, res) => {
+  res.json(PRODUCTS);
+});
+
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
 });
