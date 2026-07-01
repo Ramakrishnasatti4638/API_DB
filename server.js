@@ -30,6 +30,21 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    date_of_birth TEXT NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    newsletter INTEGER DEFAULT 0,
+    notifications INTEGER DEFAULT 0,
+    dark_mode INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 app.get('/api/notes', (req, res) => {
   try {
     const notes = db.prepare('SELECT * FROM notes ORDER BY created_at DESC').all();
@@ -173,6 +188,48 @@ app.post('/submit', (req, res) => {
     }
     
     res.json({ score, total });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Onboarding endpoints
+app.post('/api/onboarding/complete', (req, res) => {
+  try {
+    const { firstName, lastName, dateOfBirth, username, password, newsletter, notifications, darkMode } = req.body;
+    
+    if (!firstName || !lastName || !dateOfBirth || !username || !password) {
+      return res.status(400).json({ error: 'All required fields must be provided' });
+    }
+    
+    const insert = db.prepare(
+      'INSERT INTO users (first_name, last_name, date_of_birth, username, password, newsletter, notifications, dark_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    const result = insert.run(
+      firstName, 
+      lastName, 
+      dateOfBirth, 
+      username, 
+      password,
+      newsletter ? 1 : 0,
+      notifications ? 1 : 0,
+      darkMode ? 1 : 0
+    );
+    
+    const user = db.prepare('SELECT id, first_name, last_name, date_of_birth, username, newsletter, notifications, dark_mode, created_at FROM users WHERE id = ?').get(result.lastInsertRowid);
+    res.status(201).json(user);
+  } catch (error) {
+    if (error.message.includes('UNIQUE constraint failed')) {
+      return res.status(409).json({ error: 'Username already exists' });
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/onboarding/users', (req, res) => {
+  try {
+    const users = db.prepare('SELECT id, first_name, last_name, date_of_birth, username, newsletter, notifications, dark_mode, created_at FROM users ORDER BY created_at DESC').all();
+    res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
