@@ -82,6 +82,86 @@ app.post('/submit', (req, res) => {
   }
 });
 
+// Checkout API endpoints
+let cartSession = {
+  items: [
+    { id: 1, name: 'Wireless Headphones', price: 79.99, quantity: 1 },
+    { id: 2, name: 'USB-C Cable', price: 12.99, quantity: 2 }
+  ]
+};
+
+app.get('/api/cart', (req, res) => {
+  try {
+    const subtotal = cartSession.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    res.json({
+      items: cartSession.items,
+      subtotal: parseFloat(subtotal.toFixed(2))
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/cart/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { quantity } = req.body;
+    
+    const item = cartSession.items.find(i => i.id === parseInt(id));
+    if (!item) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    item.quantity = parseInt(quantity);
+    const subtotal = cartSession.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    res.json({
+      items: cartSession.items,
+      subtotal: parseFloat(subtotal.toFixed(2))
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/shipping', (req, res) => {
+  try {
+    const { name, address, city, zip } = req.body;
+    
+    if (!name || !address || !city || !zip) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    
+    cartSession.shipping = { name, address, city, zip };
+    res.json({ message: 'Shipping information saved', shipping: cartSession.shipping });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/order', (req, res) => {
+  try {
+    if (!cartSession.shipping) {
+      return res.status(400).json({ error: 'Shipping information required' });
+    }
+    
+    const orderNumber = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    const subtotal = cartSession.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    const order = {
+      orderNumber,
+      items: cartSession.items,
+      shipping: cartSession.shipping,
+      subtotal: parseFloat(subtotal.toFixed(2)),
+      timestamp: new Date().toISOString()
+    };
+    
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
 });
