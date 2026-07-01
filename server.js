@@ -30,6 +30,43 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS calendar_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    color TEXT NOT NULL,
+    event_date TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Seed calendar events for current month if empty
+const seedCalendarEvents = () => {
+  const count = db.prepare('SELECT COUNT(*) as count FROM calendar_events').get();
+  if (count.count === 0) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    
+    const events = [
+      { title: 'Team Meeting', color: '#3b82f6', date: `${year}-${month}-05` },
+      { title: 'Project Deadline', color: '#ef4444', date: `${year}-${month}-12` },
+      { title: 'Lunch with Client', color: '#10b981', date: `${year}-${month}-18` },
+      { title: 'Code Review', color: '#f59e0b', date: `${year}-${month}-22` },
+      { title: 'Sprint Planning', color: '#8b5cf6', date: `${year}-${month}-28` }
+    ];
+    
+    const insert = db.prepare('INSERT INTO calendar_events (title, color, event_date) VALUES (?, ?, ?)');
+    events.forEach(event => {
+      insert.run(event.title, event.color, event.date);
+    });
+    
+    console.log('Seeded 5 calendar events for current month');
+  }
+};
+
+seedCalendarEvents();
+
 app.get('/api/notes', (req, res) => {
   try {
     const notes = db.prepare('SELECT * FROM notes ORDER BY created_at DESC').all();
@@ -147,6 +184,70 @@ app.delete('/api/messages/:id', (req, res) => {
     }
     
     res.json({ message: 'Message deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Calendar Events CRUD endpoints
+
+// GET - Get all calendar events
+app.get('/api/calendar/events', (req, res) => {
+  try {
+    const events = db.prepare('SELECT * FROM calendar_events ORDER BY event_date ASC').all();
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET - Get events for a specific month
+app.get('/api/calendar/events/:year/:month', (req, res) => {
+  try {
+    const { year, month } = req.params;
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+    
+    const events = db.prepare(
+      'SELECT * FROM calendar_events WHERE event_date >= ? AND event_date <= ? ORDER BY event_date ASC'
+    ).all(startDate, endDate);
+    
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST - Create a new calendar event
+app.post('/api/calendar/events', (req, res) => {
+  try {
+    const { title, color, event_date } = req.body;
+    
+    if (!title || !color || !event_date) {
+      return res.status(400).json({ error: 'Title, color, and event_date are required' });
+    }
+    
+    const insert = db.prepare('INSERT INTO calendar_events (title, color, event_date) VALUES (?, ?, ?)');
+    const result = insert.run(title, color, event_date);
+    const event = db.prepare('SELECT * FROM calendar_events WHERE id = ?').get(result.lastInsertRowid);
+    res.status(201).json(event);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE - Delete a calendar event
+app.delete('/api/calendar/events/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteStmt = db.prepare('DELETE FROM calendar_events WHERE id = ?');
+    const result = deleteStmt.run(id);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+    
+    res.json({ message: 'Event deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
