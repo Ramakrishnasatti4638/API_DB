@@ -2,12 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const Database = require('better-sqlite3');
 const path = require('path');
+const productsRouter = require('./products');
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api', productsRouter);
 
 const db = new Database(path.join(__dirname, 'notes.db'));
 
