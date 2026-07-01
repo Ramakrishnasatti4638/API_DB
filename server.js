@@ -30,6 +30,27 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    price REAL NOT NULL,
+    image TEXT,
+    description TEXT
+  )
+`);
+
+const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get();
+if (productCount.count === 0) {
+  const insertProduct = db.prepare('INSERT INTO products (name, price, image, description) VALUES (?, ?, ?, ?)');
+  insertProduct.run('Wireless Headphones', 79.99, '🎧', 'Premium sound quality with noise cancellation');
+  insertProduct.run('Smart Watch', 199.99, '⌚', 'Track your fitness and stay connected');
+  insertProduct.run('Laptop Stand', 49.99, '💻', 'Ergonomic aluminum laptop stand');
+  insertProduct.run('USB-C Hub', 34.99, '🔌', '7-in-1 multiport adapter');
+  insertProduct.run('Mechanical Keyboard', 129.99, '⌨️', 'RGB backlit gaming keyboard');
+  insertProduct.run('Wireless Mouse', 39.99, '🖱️', 'Precision optical tracking');
+}
+
 app.get('/api/notes', (req, res) => {
   try {
     const notes = db.prepare('SELECT * FROM notes ORDER BY created_at DESC').all();
@@ -147,6 +168,31 @@ app.delete('/api/messages/:id', (req, res) => {
     }
     
     res.json({ message: 'Message deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Product endpoints
+app.get('/api/products', (req, res) => {
+  try {
+    const products = db.prepare('SELECT * FROM products').all();
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/products/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    res.json(product);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
