@@ -30,6 +30,21 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS onboarding_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    date_of_birth TEXT NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    newsletter INTEGER DEFAULT 0,
+    notifications INTEGER DEFAULT 0,
+    dark_mode INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 app.get('/api/notes', (req, res) => {
   try {
     const notes = db.prepare('SELECT * FROM notes ORDER BY created_at DESC').all();
@@ -173,6 +188,73 @@ app.post('/submit', (req, res) => {
     }
     
     res.json({ score, total });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Onboarding endpoints
+
+// Check if username is available
+app.post('/api/onboarding/check-username', (req, res) => {
+  try {
+    const { username } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({ error: 'Username is required' });
+    }
+    
+    const user = db.prepare('SELECT id FROM onboarding_users WHERE username = ?').get(username);
+    res.json({ available: !user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Submit onboarding data
+app.post('/api/onboarding/submit', (req, res) => {
+  try {
+    const { 
+      firstName, 
+      lastName, 
+      dateOfBirth, 
+      username, 
+      password,
+      newsletter,
+      notifications,
+      darkMode
+    } = req.body;
+    
+    if (!firstName || !lastName || !dateOfBirth || !username || !password) {
+      return res.status(400).json({ error: 'All required fields must be provided' });
+    }
+    
+    const insert = db.prepare(
+      'INSERT INTO onboarding_users (first_name, last_name, date_of_birth, username, password, newsletter, notifications, dark_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    
+    try {
+      const result = insert.run(
+        firstName, 
+        lastName, 
+        dateOfBirth, 
+        username, 
+        password,
+        newsletter ? 1 : 0,
+        notifications ? 1 : 0,
+        darkMode ? 1 : 0
+      );
+      
+      res.status(201).json({ 
+        message: 'Onboarding completed successfully',
+        userId: result.lastInsertRowid
+      });
+    } catch (dbError) {
+      if (dbError.message.includes('UNIQUE constraint failed')) {
+        return res.status(409).json({ error: 'Username already exists' });
+      }
+      throw dbError;
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
