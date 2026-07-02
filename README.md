@@ -90,3 +90,35 @@ Server runs on `http://localhost:3001`
 ## Data Persistence
 
 Notes are stored in `notes.db` SQLite database file. Data persists across server restarts.
+
+## Products & Cart API
+
+In addition to the notes and messages APIs, the server exposes a small product
+catalog and a server-side cart.
+
+### GET /api/products
+Returns the list of 6 seeded products.
+
+```json
+[
+  { "id": 1, "name": "Wireless Headphones", "price": 79.99, "image": "🎧", "description": "..." }
+]
+```
+
+### GET /api/products/:id
+Returns a single product.
+
+### GET /api/cart
+Returns `{ items, total, itemCount }`.
+
+### POST /api/cart
+Body: `{ "productId": 1, "quantity": 1 }`. Adds (or increments) a cart line.
+
+### PUT /api/cart/:productId
+Body: `{ "quantity": 3 }`. Sets the quantity. A quantity of `0` removes the line.
+
+### DELETE /api/cart/:productId
+Removes a single line from the cart.
+
+### DELETE /api/cart
+Clears the cart.
