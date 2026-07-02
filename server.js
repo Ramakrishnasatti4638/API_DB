@@ -4,7 +4,7 @@ const Database = require('better-sqlite3');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -176,6 +176,126 @@ app.post('/submit', (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Products and Cart endpoints
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    price REAL NOT NULL,
+    image TEXT,
+    description TEXT
+  )
+`);
+
+const productCount = db.prepare('SELECT COUNT(*) AS n FROM products').get().n;
+if (productCount === 0) {
+  const seed = db.prepare('INSERT INTO products (name, price, image, description) VALUES (?, ?, ?, ?)');
+  const items = [
+    ['Wireless Headphones', 79.99, '🎧', 'Noise-cancelling over-ear headphones with 30h battery life.'],
+    ['Mechanical Keyboard', 129.50, '⌨️', 'RGB backlit mechanical keyboard with hot-swappable switches.'],
+    ['Smart Coffee Mug', 49.95, '☕', 'Temperature-controlled mug that keeps your drink at 130°F.'],
+    ['Ergonomic Mouse', 39.00, '🖱️', 'Vertical wireless mouse designed to reduce wrist strain.'],
+    ['Portable SSD 1TB', 109.99, '💾', 'USB-C portable solid-state drive with 1050 MB/s read speed.'],
+    ['HD Webcam', 69.99, '📷', '1080p autofocus webcam with built-in microphone.']
+  ];
+  const insertMany = db.transaction((rows) => {
+    for (const r of rows) seed.run(...r);
+  });
+  insertMany(items);
+}
+
+app.get('/api/products', (req, res) => {
+  try {
+    const products = db.prepare('SELECT * FROM products ORDER BY id ASC').all();
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/products/:id', (req, res) => {
+  try {
+    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// In-memory server-side cart. A real app would persist this per-user in a DB,
+// but the cart sidebar drives the UI; we expose CRUD so the server is the
+// source of truth for the running total.
+let cart = []; // [{ product_id, name, price, quantity }]
+
+function recalcCart() {
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  return { items: cart, total: Number(total.toFixed(2)), itemCount };
+}
+
+app.get('/api/cart', (req, res) => {
+  res.json(recalcCart());
+});
+
+app.post('/api/cart', (req, res) => {
+  try {
+    const { productId, quantity } = req.body;
+    if (!productId) return res.status(400).json({ error: 'productId is required' });
+
+    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(productId);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    const qty = Math.max(1, parseInt(quantity, 10) || 1);
+    const existing = cart.find((i) => i.product_id === product.id);
+    if (existing) {
+      existing.quantity += qty;
+    } else {
+      cart.push({
+        product_id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: qty
+      });
+    }
+    res.status(201).json(recalcCart());
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/cart/:productId', (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { quantity } = req.body;
+    const qty = parseInt(quantity, 10);
+    if (Number.isNaN(qty)) return res.status(400).json({ error: 'quantity must be a number' });
+
+    const item = cart.find((i) => i.product_id === Number(productId));
+    if (!item) return res.status(404).json({ error: 'Item not in cart' });
+
+    if (qty <= 0) {
+      cart = cart.filter((i) => i.product_id !== Number(productId));
+    } else {
+      item.quantity = qty;
+    }
+    res.json(recalcCart());
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/cart/:productId', (req, res) => {
+  cart = cart.filter((i) => i.product_id !== Number(req.params.productId));
+  res.json(recalcCart());
+});
+
+app.delete('/api/cart', (req, res) => {
+  cart = [];
+  res.json(recalcCart());
 });
 
 app.listen(PORT, () => {
