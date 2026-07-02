@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Listing</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Product Store</h1>
+        <button id="cart-toggle" class="cart-button">
+            🛒 Cart (<span id="cart-count">0</span>)
+        </button>
+    </header>
+
+    <main class="product-grid">
+        <div class="product-card">
+            <div class="product-image">📱</div>
+            <h3 class="product-name">Smartphone X</h3>
+            <p class="product-price">$699.99</p>
+            <button class="add-to-cart-btn" data-id="1" data-name="Smartphone X" data-price="699.99">Add to Cart</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-image">💻</div>
+            <h3 class="product-name">Laptop Pro</h3>
+            <p class="product-price">$1299.99</p>
+            <button class="add-to-cart-btn" data-id="2" data-name="Laptop Pro" data-price="1299.99">Add to Cart</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-image">🎧</div>
+            <h3 class="product-name">Wireless Headphones</h3>
+            <p class="product-price">$199.99</p>
+            <button class="add-to-cart-btn" data-id="3" data-name="Wireless Headphones" data-price="199.99">Add to Cart</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-image">⌚</div>
+            <h3 class="product-name">Smart Watch</h3>
+            <p class="product-price">$399.99</p>
+            <button class="add-to-cart-btn" data-id="4" data-name="Smart Watch" data-price="399.99">Add to Cart</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-image">📷</div>
+            <h3 class="product-name">Digital Camera</h3>
+            <p class="product-price">$899.99</p>
+            <button class="add-to-cart-btn" data-id="5" data-name="Digital Camera" data-price="899.99">Add to Cart</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-image">🎮</div>
+            <h3 class="product-name">Gaming Console</h3>
+            <p class="product-price">$499.99</p>
+            <button class="add-to-cart-btn" data-id="6" data-name="Gaming Console" data-price="499.99">Add to Cart</button>
+        </div>
+    </main>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="cart-sidebar">
+        <div class="cart-header">
+            <h2>Shopping Cart</h2>
+            <button id="close-cart" class="close-btn">&times;</button>
+        </div>
+        <div id="cart-items" class="cart-items">
+            <!-- Cart items will be inserted here -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <strong>Total:</strong>
+                <span id="cart-total">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="overlay"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
