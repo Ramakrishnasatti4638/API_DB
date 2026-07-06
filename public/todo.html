@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 20px;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .add-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .add-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .add-form input,
+        .add-form textarea,
+        .add-form select {
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .add-form input:focus,
+        .add-form textarea:focus,
+        .add-form select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .add-form textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            padding: 20px 30px;
+            background: #e9ecef;
+            justify-content: center;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .todos-list {
+            padding: 30px;
+            min-height: 300px;
+        }
+
+        .todo-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            display: flex;
+            gap: 15px;
+            align-items: start;
+        }
+
+        .todo-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .todo-item.completed {
+            opacity: 0.7;
+            background: #f8f9fa;
+        }
+
+        .todo-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+
+        .todo-content {
+            flex: 1;
+        }
+
+        .todo-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .todo-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .todo-item.completed .todo-title {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .todo-priority {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .priority-high {
+            background: #fee;
+            color: #dc3545;
+        }
+
+        .priority-medium {
+            background: #fff4e5;
+            color: #fd7e14;
+        }
+
+        .priority-low {
+            background: #e7f5ff;
+            color: #0c63e4;
+        }
+
+        .todo-description {
+            color: #6c757d;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .todo-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #868e96;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            padding: 8px 16px;
+            border: 2px solid;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .btn-edit:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-delete {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .btn-delete:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .todo-item {
+                flex-direction: column;
+            }
+
+            .todo-actions {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Todo App</h1>
+        </header>
+
+        <div class="filters">
+            <div class="filter-group">
+                <button class="filter-btn" onclick="filterByPriority('low')">Low Priority</button>
+                <button class="filter-btn" onclick="filterByPriority('medium')">Medium Priority</button>
+                <button class="filter-btn" onclick="filterByPriority('high')">High Priority</button>
+            </div>
+        </div>
+
+        <div class="add-section">
+            <div class="add-form">
+                <input type="text" id="todoTitle" placeholder="What needs to be done?" required>
+                <textarea id="todoDescription" placeholder="Description (optional)"></textarea>
+                <div class="form-row">
+                    <select id="todoPriority">
+                        <option value="low">Low Priority</option>
+                        <option value="medium" selected>Medium Priority</option>
+                        <option value="high">High Priority</option>
+                    </select>
+                    <input type="date" id="todoDueDate" placeholder="Due date (optional)">
+                </div>
+                <button class="btn btn-primary" onclick="addTodo()">Add Todo</button>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Status:</label>
+                <button class="filter-btn active" onclick="filterByStatus('all')">All</button>
+                <button class="filter-btn" onclick="filterByStatus('active')">Active</button>
+                <button class="filter-btn" onclick="filterByStatus('completed')">Completed</button>
+            </div>
+            <div class="filter-group">
+                <label>Priority:</label>
+                <button class="filter-btn active" onclick="filterByPriority('')">All</button>
+                <button class="filter-btn" onclick="filterByPriority('high')">High</button>
+                <button class="filter-btn" onclick="filterByPriority('medium')">Medium</button>
+                <button class="filter-btn" onclick="filterByPriority('low')">Low</button>
+            </div>
+            <div class="filter-group" style="margin-left: auto;">
+                <button class="btn btn-danger" onclick="clearCompleted()">Clear Completed</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="activeCount">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="completedCount">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <div class="todos-list" id="todosList">
+            <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-text">No todos yet. Add one above!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api/todos';
+        let currentStatus = 'all';
+        let currentPriority = '';
+
+        async function loadTodos() {
+            try {
+                let url = API_URL;
+                const params = new URLSearchParams();
+                
+                if (currentStatus !== 'all') {
+                    params.append('status', currentStatus);
+                }
+                if (currentPriority) {
+                    params.append('priority', currentPriority);
+                }
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                const response = await fetch(url);
+                const todos = await response.json();
+                renderTodos(todos);
+                updateStats();
+            } catch (error) {
+                console.error('Error loading todos:', error);
+            }
+        }
+
+        function renderTodos(todos) {
+            const todosList = document.getElementById('todosList');
+            
+            if (todos.length === 0) {
+                todosList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-text">No todos found</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            todosList.innerHTML = todos.map(todo => {
+                const dueDate = todo.due_date ? new Date(todo.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null;
+                const createdDate = new Date(todo.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                return `
+                    <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                        <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} 
+                               onchange="toggleTodo(${todo.id})">
+                        <div class="todo-content">
+                            <div class="todo-header">
+                                <span class="todo-title">${escapeHtml(todo.title)}</span>
+                                <span class="todo-priority priority-${todo.priority}">${todo.priority.toUpperCase()}</span>
+                            </div>
+                            ${todo.description ? `<div class="todo-description">${escapeHtml(todo.description)}</div>` : ''}
+                            <div class="todo-meta">
+                                <span>Created: ${createdDate}</span>
+                                ${dueDate ? `<span>Due: ${dueDate}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="todo-actions">
+                            <button class="btn-icon btn-edit" onclick="editTodo(${todo.id})">Edit</button>
+                            <button class="btn-icon btn-delete" onclick="deleteTodo(${todo.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function addTodo() {
+            const title = document.getElementById('todoTitle').value.trim();
+            const description = document.getElementById('todoDescription').value.trim();
+            const priority = document.getElementById('todoPriority').value;
+            const due_date = document.getElementById('todoDueDate').value;
+            
+            if (!title) {
+                alert('Please enter a todo title');
+                return;
+            }
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description, priority, due_date: due_date || null })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('todoTitle').value = '';
+                    document.getElementById('todoDescription').value = '';
+                    document.getElementById('todoPriority').value = 'medium';
+                    document.getElementById('todoDueDate').value = '';
+                    loadTodos();
+                }
+            } catch (error) {
+                console.error('Error adding todo:', error);
+            }
+        }
+
+        async function toggleTodo(id) {
+            try {
+                await fetch(`${API_URL}/${id}/toggle`, { method: 'PATCH' });
+                loadTodos();
+            } catch (error) {
+                console.error('Error toggling todo:', error);
+            }
+        }
+
+        async function deleteTodo(id) {
+            if (!confirm('Are you sure you want to delete this todo?')) return;
+            
+            try {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadTodos();
+            } catch (error) {
+                console.error('Error deleting todo:', error);
+            }
+        }
+
+        async function editTodo(id) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`);
+                const todo = await response.json();
+                
+                const newTitle = prompt('Edit title:', todo.title);
+                if (newTitle === null) return;
+                
+                const newDescription = prompt('Edit description:', todo.description || '');
+                if (newDescription === null) return;
+                
+                const newPriority = prompt('Edit priority (low/medium/high):', todo.priority);
+                if (newPriority === null || !['low', 'medium', 'high'].includes(newPriority)) return;
+                
+                await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: newTitle,
+                        description: newDescription,
+                        priority: newPriority
+                    })
+                });
+                
+                loadTodos();
+            } catch (error) {
+                console.error('Error editing todo:', error);
+            }
+        }
+
+        async function clearCompleted() {
+            if (!confirm('Clear all completed todos?')) return;
+            
+            try {
+                await fetch('http://localhost:3000/api/todos/completed/clear', { method: 'DELETE' });
+                loadTodos();
+            } catch (error) {
+                console.error('Error clearing completed todos:', error);
+            }
+        }
+
+        function filterByStatus(status) {
+            currentStatus = status;
+            updateFilterButtons('status', status);
+            loadTodos();
+        }
+
+        function filterByPriority(priority) {
+            currentPriority = priority;
+            updateFilterButtons('priority', priority);
+            loadTodos();
+        }
+
+        function updateFilterButtons(type, value) {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => {
+                if ((type === 'status' && (
+                    (value === 'all' && btn.textContent === 'All' && btn.onclick.toString().includes('Status')) ||
+                    (value === 'active' && btn.textContent === 'Active') ||
+                    (value === 'completed' && btn.textContent === 'Completed')
+                )) || (type === 'priority' && (
+                    (value === '' && btn.textContent === 'All' && btn.onclick.toString().includes('Priority')) ||
+                    (value === 'high' && btn.textContent === 'High') ||
+                    (value === 'medium' && btn.textContent === 'Medium') ||
+                    (value === 'low' && btn.textContent === 'Low')
+                ))) {
+                    btn.classList.add('active');
+                } else if (
+                    (type === 'status' && ['All', 'Active', 'Completed'].includes(btn.textContent) && btn.onclick.toString().includes('Status')) ||
+                    (type === 'priority' && ['All', 'High', 'Medium', 'Low'].includes(btn.textContent) && btn.onclick.toString().includes('Priority'))
+                ) {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        async function updateStats() {
+            try {
+                const response = await fetch(API_URL);
+                const allTodos = await response.json();
+                
+                const total = allTodos.length;
+                const active = allTodos.filter(t => !t.completed).length;
+                const completed = allTodos.filter(t => t.completed).length;
+                
+                document.getElementById('totalCount').textContent = total;
+                document.getElementById('activeCount').textContent = active;
+                document.getElementById('completedCount').textContent = completed;
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.getElementById('todoTitle').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTodo();
+        });
+
+        loadTodos();
+    </script>
+</body>
+</html>
