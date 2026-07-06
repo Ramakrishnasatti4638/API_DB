@@ -8,6 +8,7 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 const db = new Database(path.join(__dirname, 'notes.db'));
 
@@ -25,6 +26,19 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     content TEXT NOT NULL,
     sender TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS todos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    completed INTEGER DEFAULT 0,
+    priority TEXT DEFAULT 'medium',
+    due_date TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
@@ -147,6 +161,152 @@ app.delete('/api/messages/:id', (req, res) => {
     }
     
     res.json({ message: 'Message deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Todo CRUD endpoints
+
+// CREATE - Create a new todo
+app.post('/api/todos', (req, res) => {
+  try {
+    const { title, description, priority, due_date } = req.body;
+    
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    
+    const insert = db.prepare(
+      'INSERT INTO todos (title, description, priority, due_date) VALUES (?, ?, ?, ?)'
+    );
+    const result = insert.run(
+      title, 
+      description || null, 
+      priority || 'medium', 
+      due_date || null
+    );
+    const todo = db.prepare('SELECT * FROM todos WHERE id = ?').get(result.lastInsertRowid);
+    res.status(201).json(todo);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// READ - Get all todos (with optional status filter)
+app.get('/api/todos', (req, res) => {
+  try {
+    const { status } = req.query;
+    let query = 'SELECT * FROM todos';
+    
+    if (status === 'completed') {
+      query += ' WHERE completed = 1';
+    } else if (status === 'active') {
+      query += ' WHERE completed = 0';
+    }
+    
+    query += ' ORDER BY created_at DESC';
+    const todos = db.prepare(query).all();
+    res.json(todos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// READ - Get a single todo by ID
+app.get('/api/todos/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const todo = db.prepare('SELECT * FROM todos WHERE id = ?').get(id);
+    
+    if (!todo) {
+      return res.status(404).json({ error: 'Todo not found' });
+    }
+    
+    res.json(todo);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// UPDATE - Update a todo
+app.put('/api/todos/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, priority, due_date, completed } = req.body;
+    
+    const todo = db.prepare('SELECT * FROM todos WHERE id = ?').get(id);
+    if (!todo) {
+      return res.status(404).json({ error: 'Todo not found' });
+    }
+    
+    const update = db.prepare(
+      'UPDATE todos SET title = ?, description = ?, priority = ?, due_date = ?, completed = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+    );
+    update.run(
+      title !== undefined ? title : todo.title,
+      description !== undefined ? description : todo.description,
+      priority !== undefined ? priority : todo.priority,
+      due_date !== undefined ? due_date : todo.due_date,
+      completed !== undefined ? completed : todo.completed,
+      id
+    );
+    
+    const updatedTodo = db.prepare('SELECT * FROM todos WHERE id = ?').get(id);
+    res.json(updatedTodo);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH - Toggle todo completion
+app.patch('/api/todos/:id/toggle', (req, res) => {
+  try {
+    const { id } = req.params;
+    const todo = db.prepare('SELECT * FROM todos WHERE id = ?').get(id);
+    
+    if (!todo) {
+      return res.status(404).json({ error: 'Todo not found' });
+    }
+    
+    const update = db.prepare(
+      'UPDATE todos SET completed = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+    );
+    update.run(todo.completed ? 0 : 1, id);
+    
+    const updatedTodo = db.prepare('SELECT * FROM todos WHERE id = ?').get(id);
+    res.json(updatedTodo);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE - Delete a single todo
+app.delete('/api/todos/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteStmt = db.prepare('DELETE FROM todos WHERE id = ?');
+    const result = deleteStmt.run(id);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Todo not found' });
+    }
+    
+    res.json({ message: 'Todo deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE - Clear all completed todos
+app.delete('/api/todos/completed', (req, res) => {
+  try {
+    const deleteStmt = db.prepare('DELETE FROM todos WHERE completed = 1');
+    const result = deleteStmt.run();
+    res.json({ 
+      message: 'Completed todos cleared successfully', 
+      deleted: result.changes 
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
