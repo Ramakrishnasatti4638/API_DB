@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="screen active">
+      <div class="card start-card">
+        <div class="quiz-icon">🧠</div>
+        <h1>General Knowledge Quiz</h1>
+        <p class="subtitle">Test your knowledge with 3 questions. Pick the best answer for each one.</p>
+        <div class="meta">
+          <span>📋 3 Questions</span>
+          <span>🎯 Multiple Choice</span>
+        </div>
+        <button id="start-btn" class="btn btn-primary">Start Quiz</button>
+      </div>
+    </div>
+
+    <!-- Question Screen -->
+    <div id="question-screen" class="screen">
+      <div class="card question-card">
+        <div class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div class="question-header">
+          <span id="question-counter" class="counter">Question 1 of 3</span>
+          <span id="score-display" class="score-badge">Score: 0</span>
+        </div>
+        <h2 id="question-text" class="question-text"></h2>
+        <div id="options-container" class="options-container"></div>
+        <button id="next-btn" class="btn btn-primary" disabled>Next →</button>
+      </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="screen">
+      <div class="card result-card">
+        <div id="result-emoji" class="result-emoji"></div>
+        <h1 id="result-title" class="result-title"></h1>
+        <p id="result-subtitle" class="result-subtitle"></p>
+        <div class="score-circle">
+          <span id="final-score" class="score-number"></span>
+          <span class="score-total">/ 3</span>
+        </div>
+        <div id="answers-review" class="answers-review"></div>
+        <button id="restart-btn" class="btn btn-primary">Play Again</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
