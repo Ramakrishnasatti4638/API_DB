@@ -1,30 +1,139 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/server.js';
+import { createConnection, type Db } from '../src/db/connection.js';
+import { migrate } from '../src/db/migrate.js';
+import { OrderRepository } from '../src/repositories/orderRepository.js';
+
+const validBody = {
+  customerId: 'cust-1',
+  items: [{ productId: 'p-1', quantity: 2, unitPrice: 9.99 }],
+  totalAmount: 19.98,
+};
+
+let db: Db;
+let app: ReturnType<typeof createApp>;
+
+beforeEach(() => {
+  db = createConnection(':memory:');
+  app = createApp(db);
+});
+
+const counts = () => ({
+  orders: (db.prepare('SELECT COUNT(*) c FROM orders').get() as { c: number }).c,
+  items: (db.prepare('SELECT COUNT(*) c FROM order_items').get() as { c: number }).c,
+});
+
+describe('migrations', () => {
+  it('is idempotent and creates tables', () => {
+    migrate(db);
+    migrate(db);
+    expect(db.prepare('SELECT COUNT(*) c FROM schema_migrations').get()).toEqual({ c: 1 });
+    expect(counts()).toEqual({ orders: 0, items: 0 });
+  });
+});
+
+describe('POST /orders', () => {
+  it('creates an order and persists it', async () => {
+    const res = await request(app).post('/orders').send(validBody);
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({ customerId: 'cust-1', status: 'Pending', totalAmount: 19.98 });
+    expect(res.body.id).toBeTruthy();
+    expect(new Date(res.body.createdAt).toString()).not.toBe('Invalid Date');
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.items[0]).toMatchObject({ productId: 'p-1', quantity: 2, unitPrice: 9.99 });
+    expect(counts()).toEqual({ orders: 1, items: 1 });
+  });
+
+  const bad: [string, unknown][] = [
+    ['missing customerId', { ...validBody, customerId: undefined }],
+    ['empty customerId', { ...validBody, customerId: '  ' }],
+    ['missing items', { ...validBody, items: undefined }],
+    ['empty items', { ...validBody, items: [] }],
+    ['missing productId', { ...validBody, items: [{ quantity: 1, unitPrice: 1 }] }],
+    ['zero quantity', { ...validBody, items: [{ productId: 'p', quantity: 0, unitPrice: 1 }] }],
+    ['negative quantity', { ...validBody, items: [{ productId: 'p', quantity: -1, unitPrice: 1 }] }],
+    ['fractional quantity', { ...validBody, items: [{ productId: 'p', quantity: 1.5, unitPrice: 1 }] }],
+    ['negative unitPrice', { ...validBody, items: [{ productId: 'p', quantity: 1, unitPrice: -1 }] }],
+    ['missing unitPrice', { ...validBody, items: [{ productId: 'p', quantity: 1 }] }],
+    ['invalid totalAmount', { ...validBody, totalAmount: 'abc' }],
+    ['negative totalAmount', { ...validBody, totalAmount: -5 }],
+  ];
+  it.each(bad)('returns 400 for %s', async (_name, body) => {
+    const res = await request(app).post('/orders').send(body as object);
+    expect(res.status).toBe(400);
+    expect(typeof res.body.error).toBe('string');
+    expect(counts()).toEqual({ orders: 0, items: 0 });
+  });
+
+  it('returns 400 for a non-object body', async () => {
+    const res = await request(app).post('/orders').send([1, 2]);
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for malformed JSON', async () => {
+    const res = await request(app).post('/orders').set('Content-Type', 'application/json').send('{bad');
+    expect(res.status).toBe(400);
+  });
+
+  it('rolls back and returns 500 when an item insert fails', async () => {
+    let n = 0;
+    // first id (order) is unique; the second and third (items) collide -> PK violation on 2nd item
+    const repo = new OrderRepository(db, () => (n++ === 0 ? 'order-1' : 'dup'));
+    const failingApp = createApp(db, repo);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await request(failingApp)
+      .post('/orders')
+      .send({ ...validBody, items: [validBody.items[0], validBody.items[0]] });
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: 'Internal server error' });
+    expect(counts()).toEqual({ orders: 0, items: 0 });
+  });
+});
 
 describe('GET /orders', () => {
-  it('returns a 200 response', async () => {
-    const app = createApp();
+  it('returns empty result on an empty database', async () => {
     const res = await request(app).get('/orders');
     expect(res.status).toBe(200);
+    expect(res.body).toEqual({ result: [], total: 0 });
   });
 
-  it('returns an array of orders by default', async () => {
-    const app = createApp();
+  it('returns orders with items and total', async () => {
+    await request(app).post('/orders').send(validBody);
     const res = await request(app).get('/orders');
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThan(0);
+    expect(res.status).toBe(200);
+    expect(res.body.total).toBe(1);
+    expect(res.body.result[0].items).toHaveLength(1);
   });
 
-  it('each order has the expected shape', async () => {
-    const app = createApp();
-    const res = await request(app).get('/orders');
-    for (const order of res.body) {
-      expect(order).toHaveProperty('id');
-      expect(order).toHaveProperty('userId');
-      expect(order).toHaveProperty('total');
-      expect(order).toHaveProperty('status');
-      expect(order).toHaveProperty('createdAt');
-    }
+  it('paginates', async () => {
+    for (let i = 0; i < 5; i++) await request(app).post('/orders').send(validBody);
+    const p1 = await request(app).get('/orders?page=1&pageSize=2');
+    const p3 = await request(app).get('/orders?page=3&pageSize=2');
+    const p4 = await request(app).get('/orders?page=4&pageSize=2');
+    expect(p1.body.result).toHaveLength(2);
+    expect(p1.body.total).toBe(5);
+    expect(p3.body.result).toHaveLength(1);
+    expect(p4.body).toEqual({ result: [], total: 5 });
   });
+
+  it('filters by status', async () => {
+    await request(app).post('/orders').send(validBody);
+    await request(app).post('/orders').send(validBody);
+    db.prepare("UPDATE orders SET status = 'Shipped' WHERE id = (SELECT id FROM orders LIMIT 1)").run();
+    const shipped = await request(app).get('/orders?status=Shipped');
+    expect(shipped.body.total).toBe(1);
+    expect(shipped.body.result[0].status).toBe('Shipped');
+    const none = await request(app).get('/orders?status=Cancelled');
+    expect(none.body).toEqual({ result: [], total: 0 });
+  });
+
+  it.each(['page=0', 'page=abc', 'page=1.5', 'pageSize=0', 'pageSize=-1', 'pageSize=x', 'pageSize=101'])(
+    'returns 400 for %s',
+    async (qs) => {
+      const res = await request(app).get(`/orders?${qs}`);
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBeTruthy();
+    },
+  );
 });
