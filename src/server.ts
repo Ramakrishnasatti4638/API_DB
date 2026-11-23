@@ -19,17 +19,24 @@ function validateCreateOrder(body: unknown): { dto?: CreateOrderDTO; errors: str
   const b = body as Record<string, unknown>;
   if (!isNonEmptyString(b.customerId)) errors.push('customerId is required and must be a non-empty string');
   if (!isNonNegativeNumber(b.totalAmount)) errors.push('totalAmount is required and must be a number >= 0');
-  if (!Array.isArray(b.items) || b.items.length === 0) {
-    errors.push('items is required and must be a non-empty array');
+  if (!Array.isArray(b.items)) {
+    errors.push('items is required and must be an array');
+  } else if (b.items.length === 0) {
+    errors.push('Order must contain at least one item.');
   } else {
+    const quantityErrors = new Set<string>();
     b.items.forEach((item: unknown, idx: number) => {
       const it = (typeof item === 'object' && item !== null ? item : {}) as Record<string, unknown>;
       if (!isNonEmptyString(it.productId)) errors.push(`items[${idx}].productId is required and must be a non-empty string`);
-      if (!Number.isInteger(it.quantity) || (it.quantity as number) <= 0) {
-        errors.push(`items[${idx}].quantity must be an integer greater than 0`);
+      const q = it.quantity;
+      if (typeof q !== 'number' || !Number.isFinite(q) || q < 1) {
+        quantityErrors.add('Item quantity must be at least 1.');
+      } else if (!Number.isInteger(q)) {
+        quantityErrors.add('Item quantity must be a whole number.');
       }
       if (!isNonNegativeNumber(it.unitPrice)) errors.push(`items[${idx}].unitPrice is required and must be a number >= 0`);
     });
+    errors.push(...quantityErrors);
   }
   return errors.length > 0 ? { errors } : { dto: b as unknown as CreateOrderDTO, errors };
 }

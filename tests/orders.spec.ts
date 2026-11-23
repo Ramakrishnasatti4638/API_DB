@@ -66,6 +66,75 @@ describe('POST /orders', () => {
     expect(counts()).toEqual({ orders: 0, items: 0 });
   });
 
+  describe('BUG-0001 regression', () => {
+    const EMPTY_MSG = 'Order must contain at least one item.';
+    const QTY_MSG = 'Item quantity must be at least 1.';
+    const item = (quantity: unknown) => ({ productId: 'p1', quantity, unitPrice: 10 });
+
+    const expectRejected = (res: request.Response, message: string) => {
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toContain(message);
+      expect(res.body.error).toContain(message);
+      expect(counts()).toEqual({ orders: 0, items: 0 });
+    };
+
+    it('rejects empty items with the required message', async () => {
+      const res = await request(app).post('/orders').send({ ...validBody, items: [] });
+      expectRejected(res, EMPTY_MSG);
+      expect(res.body.errors).toEqual([EMPTY_MSG]);
+      expect(res.body.error).toBe(EMPTY_MSG);
+    });
+
+    it('rejects a negative quantity with the required message', async () => {
+      const res = await request(app).post('/orders').send({ ...validBody, items: [item(-5)] });
+      expectRejected(res, QTY_MSG);
+      expect(res.body.errors).toEqual([QTY_MSG]);
+    });
+
+    it('rejects a zero quantity with the required message', async () => {
+      const res = await request(app).post('/orders').send({ ...validBody, items: [item(0)] });
+      expectRejected(res, QTY_MSG);
+    });
+
+    it('rejects a non-numeric quantity with the required message', async () => {
+      const res = await request(app).post('/orders').send({ ...validBody, items: [item('2')] });
+      expectRejected(res, QTY_MSG);
+    });
+
+    it('saves nothing when only one of several items is invalid', async () => {
+      const res = await request(app).post('/orders').send({ ...validBody, items: [item(1), item(-1)] });
+      expectRejected(res, QTY_MSG);
+    });
+
+    it('reports the quantity message once when several items fail', async () => {
+      const res = await request(app).post('/orders').send({ ...validBody, items: [item(-1), item(0)] });
+      expectRejected(res, QTY_MSG);
+      expect(res.body.errors.filter((e: string) => e === QTY_MSG)).toHaveLength(1);
+    });
+
+    it('rejects a fractional quantity with the whole-number message', async () => {
+      const res = await request(app).post('/orders').send({ ...validBody, items: [item(1.5)] });
+      expectRejected(res, 'Item quantity must be a whole number.');
+    });
+
+    it('rejects the empty-items curl body from the report (never 500)', async () => {
+      const res = await request(app).post('/orders').send({ customerId: 'c123', items: [] });
+      expectRejected(res, EMPTY_MSG);
+    });
+
+    it('rejects the negative-quantity curl body from the report (never 201)', async () => {
+      const res = await request(app)
+        .post('/orders')
+        .send({ customerId: 'c123', items: [{ productId: 'p1', quantity: -2, unitPrice: 10 }] });
+      expectRejected(res, QTY_MSG);
+    });
+
+    it('keeps the "must be an array" message for a non-array items', async () => {
+      const res = await request(app).post('/orders').send({ ...validBody, items: 'x' });
+      expectRejected(res, 'items is required and must be an array');
+    });
+  });
+
   it('returns 400 for a non-object body', async () => {
     const res = await request(app).post('/orders').send([1, 2]);
     expect(res.status).toBe(400);
