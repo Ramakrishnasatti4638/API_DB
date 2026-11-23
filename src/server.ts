@@ -5,7 +5,7 @@ import type { CreateOrderDTO } from './models/order.js';
 import { OrderRepository } from './repositories/orderRepository.js';
 
 const MAX_PAGE_SIZE = 100;
-const DEFAULT_PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 20;
 
 const isNonEmptyString = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0;
 const isNonNegativeNumber = (v: unknown): v is number =>
@@ -84,7 +84,9 @@ export function createApp(db: Db = createConnection(), repo?: OrderRepository): 
       return;
     }
     try {
-      res.status(200).json({ result: orders.getOrders({ page, pageSize, status }), total: orders.countOrders(status) });
+      const items = orders.getOrders({ page, pageSize, status });
+      const totalCount = orders.countOrders(status);
+      res.status(200).json({ items, totalCount, page, pageSize });
     } catch (err) {
       next(err);
     }

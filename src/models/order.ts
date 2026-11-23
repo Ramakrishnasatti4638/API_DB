@@ -33,6 +33,8 @@ export interface OrderQuery {
 }
 
 export interface OrderPage {
-  result: Order[];
-  total: number;
+  items: Order[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
 }
