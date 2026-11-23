@@ -94,6 +94,87 @@ paths:
                   - error
                 example:
                   error: "order 9999 not found"
+        '400':
+          description: Bad request. Returned when the id is not a positive integer.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                example:
+                  error: "id must be a positive integer"
+    patch:
+      summary: Update an order
+      description: Partially updates an order. Any combination of `userId`, `total`, and `status` may be provided; unspecified fields are left unchanged. Returns 200 with the updated order on success, 404 if no order with that id exists, or 400 if the id is invalid, the body is malformed, the body contains no updatable fields, or any provided field has an invalid value. The `id` and `createdAt` fields cannot be updated.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Order id. Must be a positive integer.
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                userId:
+                  type: integer
+                  minimum: 1
+                  description: New userId. Must be a positive integer.
+                total:
+                  type: number
+                  format: float
+                  minimum: 0
+                  description: New total. Must be a non-negative finite number.
+                status:
+                  type: string
+                  enum: [pending, paid, shipped, cancelled]
+                  description: New status. Must be one of the allowed values.
+            example:
+              status: shipped
+              total: 99.5
+      responses:
+        '200':
+          description: Order updated successfully. Returns the updated order.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad request. Returned when the id is not a positive integer, the body is malformed, the body contains no updatable fields, an immutable field is provided, or any provided field has an invalid value.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                example:
+                  error: "status must be one of: pending, paid, shipped, cancelled"
+        '404':
+          description: Order not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                example:
+                  error: "order 9999 not found"
 
   /health:
     get:
