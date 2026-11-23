@@ -9,6 +9,21 @@ export function createApp(): express.Express {
     res.status(200).json(orders);
   });
 
+  app.delete('/orders/:id', (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      res.status(400).json({ error: 'id must be a positive integer' });
+      return;
+    }
+    const index = orders.findIndex((order) => order.id === id);
+    if (index === -1) {
+      res.status(404).json({ error: `order ${id} not found` });
+      return;
+    }
+    orders.splice(index, 1);
+    res.status(204).send();
+  });
+
   app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
   });

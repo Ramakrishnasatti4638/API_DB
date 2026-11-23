@@ -28,3 +28,37 @@ describe('GET /orders', () => {
     }
   });
 });
+
+describe('DELETE /orders/:id', () => {
+  it('returns 204 when deleting an existing order', async () => {
+    const app = createApp();
+    const res = await request(app).delete('/orders/1');
+    expect(res.status).toBe(204);
+  });
+
+  it('returns 404 when the order does not exist', async () => {
+    const app = createApp();
+    const res = await request(app).delete('/orders/9999');
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('returns 400 when the id is not a positive integer', async () => {
+    const app = createApp();
+    const res = await request(app).delete('/orders/abc');
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('returns 400 when the id is zero', async () => {
+    const app = createApp();
+    const res = await request(app).delete('/orders/0');
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when the id is negative', async () => {
+    const app = createApp();
+    const res = await request(app).delete('/orders/-1');
+    expect(res.status).toBe(400);
+  });
+});
