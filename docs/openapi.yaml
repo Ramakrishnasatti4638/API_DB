@@ -18,26 +18,32 @@ paths:
           schema: { type: integer, minimum: 1, default: 1 }
         - in: query
           name: pageSize
-          schema: { type: integer, minimum: 1, maximum: 100, default: 10 }
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
         - in: query
           name: status
           description: Only return orders with this status.
           schema: { type: string, example: Pending }
       responses:
         '200':
-          description: A page of orders (`result` is empty when nothing matches).
+          description: A page of orders (`items` is empty when nothing matches).
           content:
             application/json:
               schema:
                 type: object
-                required: [result, total]
+                required: [items, totalCount, page, pageSize]
                 properties:
-                  result:
+                  items:
                     type: array
                     items: { $ref: '#/components/schemas/Order' }
-                  total:
+                  totalCount:
                     type: integer
                     description: Total orders matching the filter.
+                  page:
+                    type: integer
+                    example: 1
+                  pageSize:
+                    type: integer
+                    example: 20
         '400':
           description: Invalid page, pageSize or status.
           content:

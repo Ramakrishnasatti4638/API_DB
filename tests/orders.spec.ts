@@ -28,8 +28,14 @@ describe('migrations', () => {
   it('is idempotent and creates tables', () => {
     migrate(db);
     migrate(db);
-    expect(db.prepare('SELECT COUNT(*) c FROM schema_migrations').get()).toEqual({ c: 1 });
+    expect(db.prepare('SELECT COUNT(*) c FROM schema_migrations').get()).toEqual({ c: 2 });
     expect(counts()).toEqual({ orders: 0, items: 0 });
+
+    const indexes = (
+      db.prepare("SELECT name FROM sqlite_master WHERE type = 'index'").all() as { name: string }[]
+    ).map((r) => r.name);
+    expect(indexes).toContain('idx_orders_customer_id_created_at');
+    expect(indexes).toContain('idx_orders_status');
   });
 });
 
@@ -164,26 +170,36 @@ describe('GET /orders', () => {
   it('returns empty result on an empty database', async () => {
     const res = await request(app).get('/orders');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ result: [], total: 0 });
+    expect(res.body).toEqual({ items: [], totalCount: 0, page: 1, pageSize: 20 });
   });
 
-  it('returns orders with items and total', async () => {
+  it('returns orders with items and totalCount and default pagination', async () => {
     await request(app).post('/orders').send(validBody);
     const res = await request(app).get('/orders');
     expect(res.status).toBe(200);
-    expect(res.body.total).toBe(1);
-    expect(res.body.result[0].items).toHaveLength(1);
+    expect(res.body.totalCount).toBe(1);
+    expect(res.body.page).toBe(1);
+    expect(res.body.pageSize).toBe(20);
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.items[0].items).toHaveLength(1);
   });
 
-  it('paginates', async () => {
+  it('paginates and preserves metadata', async () => {
     for (let i = 0; i < 5; i++) await request(app).post('/orders').send(validBody);
     const p1 = await request(app).get('/orders?page=1&pageSize=2');
     const p3 = await request(app).get('/orders?page=3&pageSize=2');
     const p4 = await request(app).get('/orders?page=4&pageSize=2');
-    expect(p1.body.result).toHaveLength(2);
-    expect(p1.body.total).toBe(5);
-    expect(p3.body.result).toHaveLength(1);
-    expect(p4.body).toEqual({ result: [], total: 5 });
+    expect(p1.body.items).toHaveLength(2);
+    expect(p1.body.totalCount).toBe(5);
+    expect(p1.body.page).toBe(1);
+    expect(p1.body.pageSize).toBe(2);
+
+    expect(p3.body.items).toHaveLength(1);
+    expect(p3.body.totalCount).toBe(5);
+    expect(p3.body.page).toBe(3);
+    expect(p3.body.pageSize).toBe(2);
+
+    expect(p4.body).toEqual({ items: [], totalCount: 5, page: 4, pageSize: 2 });
   });
 
   it('filters by status', async () => {
@@ -191,13 +207,22 @@ describe('GET /orders', () => {
     await request(app).post('/orders').send(validBody);
     db.prepare("UPDATE orders SET status = 'Shipped' WHERE id = (SELECT id FROM orders LIMIT 1)").run();
     const shipped = await request(app).get('/orders?status=Shipped');
-    expect(shipped.body.total).toBe(1);
-    expect(shipped.body.result[0].status).toBe('Shipped');
+    expect(shipped.body.totalCount).toBe(1);
+    expect(shipped.body.page).toBe(1);
+    expect(shipped.body.pageSize).toBe(20);
+    expect(shipped.body.items[0].status).toBe('Shipped');
+
     const none = await request(app).get('/orders?status=Cancelled');
-    expect(none.body).toEqual({ result: [], total: 0 });
+    expect(none.body).toEqual({ items: [], totalCount: 0, page: 1, pageSize: 20 });
   });
 
-  it.each(['page=0', 'page=abc', 'page=1.5', 'pageSize=0', 'pageSize=-1', 'pageSize=x', 'pageSize=101'])(
+  it('supports pageSize up to 100', async () => {
+    const res = await request(app).get('/orders?pageSize=100');
+    expect(res.status).toBe(200);
+    expect(res.body.pageSize).toBe(100);
+  });
+
+  it.each(['page=0', 'page=abc', 'page=1.5', 'pageSize=0', 'pageSize=-1', 'pageSize=x', 'pageSize=101', 'status='])(
     'returns 400 for %s',
     async (qs) => {
       const res = await request(app).get(`/orders?${qs}`);
