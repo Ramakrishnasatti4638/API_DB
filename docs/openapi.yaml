@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Orders API
-  description: HTTP API for managing orders.
-  version: 1.0.0
+  description: HTTP API for managing orders, persisted in SQLite.
+  version: 2.0.0
 servers:
   - url: http://localhost:3000
     description: Local development server
@@ -11,47 +11,61 @@ paths:
   /orders:
     get:
       summary: List orders
-      description: Returns a paginated list of orders. When called without query parameters, returns up to the default page size (50) starting at offset 0.
+      description: Returns a paginated list of orders, newest first, with their line items.
       parameters:
         - in: query
-          name: limit
-          required: false
-          description: Maximum number of orders to return. Must be a whole number between 1 and 200. Defaults to 50 when omitted.
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 200
-            default: 50
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
         - in: query
-          name: offset
-          required: false
-          description: Number of orders to skip before returning results. Must be a whole number greater than or equal to 0. Defaults to 0 when omitted.
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100, default: 10 }
+        - in: query
+          name: status
+          description: Only return orders with this status.
+          schema: { type: string, example: Pending }
       responses:
         '200':
-          description: A page of orders.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Order'
-        '400':
-          description: Bad request. Returned when a query parameter is not a whole number or is outside its allowed range.
+          description: A page of orders (`result` is empty when nothing matches).
           content:
             application/json:
               schema:
                 type: object
+                required: [result, total]
                 properties:
-                  error:
-                    type: string
-                required:
-                  - error
-                example:
-                  error: "limit must be a whole number between 1 and 200"
+                  result:
+                    type: array
+                    items: { $ref: '#/components/schemas/Order' }
+                  total:
+                    type: integer
+                    description: Total orders matching the filter.
+        '400':
+          description: Invalid page, pageSize or status.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    post:
+      summary: Create an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOrder' }
+      responses:
+        '201':
+          description: Order created with status Pending.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: Validation failed.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500':
+          description: Database error; nothing was persisted.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
 
   /health:
     get:
@@ -64,36 +78,51 @@ paths:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                    example: ok
+                  status: { type: string, example: ok }
 
 components:
   schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+        errors:
+          type: array
+          items: { type: string }
+    CreateOrderItem:
+      type: object
+      required: [productId, quantity, unitPrice]
+      properties:
+        productId: { type: string, minLength: 1 }
+        quantity: { type: integer, minimum: 1 }
+        unitPrice: { type: number, minimum: 0, example: 19.99 }
+    CreateOrder:
+      type: object
+      required: [customerId, items, totalAmount]
+      properties:
+        customerId: { type: string, minLength: 1 }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/CreateOrderItem' }
+        totalAmount: { type: number, minimum: 0, example: 19.99 }
+    OrderItem:
+      allOf:
+        - $ref: '#/components/schemas/CreateOrderItem'
+        - type: object
+          required: [id]
+          properties:
+            id: { type: string }
     Order:
       type: object
-      required:
-        - id
-        - userId
-        - total
-        - status
-        - createdAt
+      required: [id, customerId, items, totalAmount, status, createdAt]
       properties:
-        id:
-          type: integer
-          example: 1
-        userId:
-          type: integer
-          example: 1
-        total:
-          type: number
-          format: float
-          example: 19.99
-        status:
-          type: string
-          enum: [pending, paid, shipped, cancelled]
-          example: paid
-        createdAt:
-          type: string
-          format: date-time
-          example: 2024-01-01T10:00:00Z
+        id: { type: string }
+        customerId: { type: string }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/OrderItem' }
+        totalAmount: { type: number }
+        status: { type: string, example: Pending }
+        createdAt: { type: string, format: date-time }
