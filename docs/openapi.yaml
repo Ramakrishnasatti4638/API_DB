@@ -61,6 +61,17 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
+              examples:
+                emptyItems:
+                  summary: items is an empty array
+                  value:
+                    error: Order must contain at least one item.
+                    errors: ['Order must contain at least one item.']
+                invalidQuantity:
+                  summary: an item has quantity < 1
+                  value:
+                    error: Item quantity must be at least 1.
+                    errors: ['Item quantity must be at least 1.']
         '500':
           description: Database error; nothing was persisted.
           content:
