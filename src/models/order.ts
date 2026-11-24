@@ -26,6 +26,13 @@ export interface CreateOrderDTO {
   totalAmount: number;
 }
 
+export interface UpdateOrderDTO {
+  customerId: string;
+  items: CreateOrderItemDTO[];
+  totalAmount: number;
+  status?: string;
+}
+
 export interface OrderQuery {
   page: number;
   pageSize: number;

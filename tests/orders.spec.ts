@@ -206,3 +206,134 @@ describe('GET /orders', () => {
     },
   );
 });
+
+describe('POST /orders with customer_id and customerId', () => {
+  it('creates order when customer_id snake_case is used', async () => {
+    const res = await request(app)
+      .post('/orders')
+      .send({
+        customer_id: 'cust-snake-1',
+        items: [{ product_id: 'p-1', quantity: 3, unit_price: 15 }],
+        total_amount: 45,
+      });
+    expect(res.status).toBe(201);
+    expect(res.body.customerId).toBe('cust-snake-1');
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.items[0]).toMatchObject({ productId: 'p-1', quantity: 3, unitPrice: 15 });
+  });
+
+  it('rejects POST /orders when customer_id is empty or missing', async () => {
+    const res = await request(app).post('/orders').send({
+      items: [{ productId: 'p-1', quantity: 1, unitPrice: 10 }],
+      totalAmount: 10,
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.errors).toContain('customer_id is required and must be a non-empty string');
+    expect(res.body.error).toContain('customer_id is required and must be a non-empty string');
+  });
+
+  it('rejects POST /orders when items is empty array with required message', async () => {
+    const res = await request(app).post('/orders').send({
+      customer_id: 'cust-123',
+      items: [],
+      totalAmount: 10,
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.errors).toContain('Order must contain at least one item.');
+    expect(res.body.error).toBe('Order must contain at least one item.');
+  });
+});
+
+describe('PUT /orders/:id', () => {
+  it('returns 404 when order does not exist', async () => {
+    const res = await request(app)
+      .put('/orders/nonexistent-id')
+      .send({
+        customer_id: 'cust-1',
+        items: [{ product_id: 'p-1', quantity: 1, unit_price: 10 }],
+        total_amount: 10,
+      });
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: 'Order not found' });
+  });
+
+  it('rejects update when order status is delivered (case-insensitive)', async () => {
+    const createRes = await request(app).post('/orders').send(validBody);
+    const orderId = createRes.body.id;
+
+    // Set order status to 'delivered'
+    db.prepare("UPDATE orders SET status = 'Delivered' WHERE id = ?").run(orderId);
+
+    const updateRes = await request(app)
+      .put(`/orders/${orderId}`)
+      .send({
+        customer_id: 'cust-1',
+        items: [{ product_id: 'p-2', quantity: 1, unit_price: 20 }],
+        total_amount: 20,
+      });
+    expect(updateRes.status).toBe(400);
+    expect(updateRes.body.error).toBe('Cannot update an order that has already been delivered');
+    expect(updateRes.body.errors).toEqual(['Cannot update an order that has already been delivered']);
+
+    // Check lowercase 'delivered'
+    db.prepare("UPDATE orders SET status = 'delivered' WHERE id = ?").run(orderId);
+    const updateResLower = await request(app)
+      .put(`/orders/${orderId}`)
+      .send({
+        customerId: 'cust-1',
+        items: [{ productId: 'p-2', quantity: 1, unitPrice: 20 }],
+        totalAmount: 20,
+      });
+    expect(updateResLower.status).toBe(400);
+    expect(updateResLower.body.error).toBe('Cannot update an order that has already been delivered');
+  });
+
+  it('rejects PUT when payload is invalid with HTTP 400 and detailed errors', async () => {
+    const createRes = await request(app).post('/orders').send(validBody);
+    const orderId = createRes.body.id;
+
+    const res = await request(app)
+      .put(`/orders/${orderId}`)
+      .send({
+        customer_id: '',
+        items: [],
+      });
+    expect(res.status).toBe(400);
+    expect(res.body.errors).toContain('customer_id is required and must be a non-empty string');
+    expect(res.body.errors).toContain('Order must contain at least one item.');
+    expect(res.body.errors).toContain('totalAmount is required and must be a number >= 0');
+  });
+
+  it('successfully updates an order when not delivered', async () => {
+    const createRes = await request(app).post('/orders').send(validBody);
+    const orderId = createRes.body.id;
+
+    const updatePayload = {
+      customer_id: 'cust-updated',
+      items: [
+        { product_id: 'p-updated-1', quantity: 4, unit_price: 25 },
+        { product_id: 'p-updated-2', quantity: 1, unit_price: 50 },
+      ],
+      total_amount: 150,
+      status: 'Processing',
+    };
+
+    const res = await request(app).put(`/orders/${orderId}`).send(updatePayload);
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(orderId);
+    expect(res.body.customerId).toBe('cust-updated');
+    expect(res.body.status).toBe('Processing');
+    expect(res.body.totalAmount).toBe(150);
+    expect(res.body.items).toHaveLength(2);
+    expect(res.body.items[0]).toMatchObject({ productId: 'p-updated-1', quantity: 4, unitPrice: 25 });
+    expect(res.body.items[1]).toMatchObject({ productId: 'p-updated-2', quantity: 1, unitPrice: 50 });
+
+    // Verify DB state
+    const repo = new OrderRepository(db);
+    const fetched = repo.getOrderById(orderId);
+    expect(fetched).toBeDefined();
+    expect(fetched?.customerId).toBe('cust-updated');
+    expect(fetched?.status).toBe('Processing');
+    expect(fetched?.items).toHaveLength(2);
+  });
+});
