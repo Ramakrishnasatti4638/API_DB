@@ -6,6 +6,8 @@ import { OrderRepository } from './repositories/orderRepository.js';
 
 const MAX_PAGE_SIZE = 100;
 const DEFAULT_PAGE_SIZE = 10;
+const ALLOWED_STATUSES = ['pending', 'shipped', 'delivered'];
+const ALLOWED_LIST = ALLOWED_STATUSES.join(', ');
 
 const isNonEmptyString = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0;
 const isNonNegativeNumber = (v: unknown): v is number =>
@@ -80,10 +82,13 @@ export function createApp(db: Db = createConnection(), repo?: OrderRepository): 
     const pageSize = parsePositiveInt(req.query.pageSize, 'pageSize', errors, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
     let status: string | undefined;
     if (req.query.status !== undefined) {
-      if (typeof req.query.status !== 'string' || req.query.status.length === 0) {
-        errors.push('status must be a non-empty string');
+      const raw = req.query.status;
+      if (typeof raw !== 'string' || raw.length === 0) {
+        errors.push(`status must be a non-empty string and one of: ${ALLOWED_LIST}`);
+      } else if (!ALLOWED_STATUSES.includes(raw.toLowerCase())) {
+        errors.push(`status must be one of: ${ALLOWED_LIST}`);
       } else {
-        status = req.query.status;
+        status = raw.toLowerCase();
       }
     }
     if (errors.length > 0) {

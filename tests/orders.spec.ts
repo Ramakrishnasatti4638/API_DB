@@ -193,8 +193,76 @@ describe('GET /orders', () => {
     const shipped = await request(app).get('/orders?status=Shipped');
     expect(shipped.body.total).toBe(1);
     expect(shipped.body.result[0].status).toBe('Shipped');
-    const none = await request(app).get('/orders?status=Cancelled');
+    const none = await request(app).get('/orders?status=delivered');
     expect(none.body).toEqual({ result: [], total: 0 });
+  });
+
+  describe('status filter', () => {
+    const seed = async () => {
+      for (let i = 0; i < 5; i++) await request(app).post('/orders').send(validBody);
+      const ids = (db.prepare('SELECT id FROM orders ORDER BY id').all() as { id: string }[]).map((r) => r.id);
+      const set = db.prepare('UPDATE orders SET status = ? WHERE id = ?');
+      set.run('Shipped', ids[0]);
+      set.run('Shipped', ids[1]);
+      set.run('Delivered', ids[2]);
+    };
+
+    it.each([
+      ['pending', 2],
+      ['shipped', 2],
+      ['delivered', 1],
+    ])('returns only %s orders', async (status, count) => {
+      await seed();
+      const res = await request(app).get(`/orders?status=${status}`);
+      expect(res.status).toBe(200);
+      expect(res.body.total).toBe(count);
+      expect(res.body.result).toHaveLength(count);
+      for (const o of res.body.result) expect(o.status.toLowerCase()).toBe(status);
+    });
+
+    it('returns all statuses when no filter is given', async () => {
+      await seed();
+      const res = await request(app).get('/orders');
+      expect(res.body.total).toBe(5);
+    });
+
+    it.each(['pending', 'Pending', 'PENDING', 'pEnDiNg'])('matches case-insensitively: %s', async (v) => {
+      await seed();
+      const res = await request(app).get(`/orders?status=${v}`);
+      expect(res.status).toBe(200);
+      expect(res.body.total).toBe(2);
+    });
+
+    it('matches SHIPPED case-insensitively', async () => {
+      await seed();
+      const res = await request(app).get('/orders?status=SHIPPED');
+      expect(res.body.total).toBe(2);
+    });
+
+    it.each(['invalid', '123', 'Cancelled'])('returns 400 for invalid status %s', async (v) => {
+      const res = await request(app).get(`/orders?status=${v}`);
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('status must be one of: pending, shipped, delivered');
+      expect(res.body.errors).toEqual([res.body.error]);
+    });
+
+    it('returns 400 for an empty status', async () => {
+      const res = await request(app).get('/orders?status=');
+      expect(res.status).toBe(400);
+      expect(res.body.error).toContain('pending, shipped, delivered');
+    });
+
+    it('keeps total accurate across filtered pages', async () => {
+      await seed();
+      const p1 = await request(app).get('/orders?status=pending&page=1&pageSize=1');
+      const p2 = await request(app).get('/orders?status=pending&page=2&pageSize=1');
+      const p3 = await request(app).get('/orders?status=pending&page=3&pageSize=1');
+      expect(p1.body.result).toHaveLength(1);
+      expect(p2.body.result).toHaveLength(1);
+      expect(p1.body.result[0].id).not.toBe(p2.body.result[0].id);
+      expect(p3.body.result).toEqual([]);
+      for (const r of [p1, p2, p3]) expect(r.body.total).toBe(2);
+    });
   });
 
   it.each(['page=0', 'page=abc', 'page=1.5', 'pageSize=0', 'pageSize=-1', 'pageSize=x', 'pageSize=101'])(
