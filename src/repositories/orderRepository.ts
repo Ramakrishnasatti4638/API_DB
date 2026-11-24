@@ -62,13 +62,13 @@ export class OrderRepository {
     const row = (
       status === undefined
         ? this.db.prepare('SELECT COUNT(*) AS c FROM orders').get()
-        : this.db.prepare('SELECT COUNT(*) AS c FROM orders WHERE status = ?').get(status)
+        : this.db.prepare('SELECT COUNT(*) AS c FROM orders WHERE LOWER(status) = LOWER(?)').get(status)
     ) as { c: number };
     return row.c;
   }
 
   getOrders({ page, pageSize, status }: OrderQuery): Order[] {
-    const where = status === undefined ? '' : 'WHERE status = ?';
+    const where = status === undefined ? '' : 'WHERE LOWER(status) = LOWER(?)';
     const params: unknown[] = status === undefined ? [] : [status];
     const rows = this.db
       .prepare(`SELECT * FROM orders ${where} ORDER BY created_at DESC, id LIMIT ? OFFSET ?`)

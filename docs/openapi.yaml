@@ -21,8 +21,8 @@ paths:
           schema: { type: integer, minimum: 1, maximum: 100, default: 10 }
         - in: query
           name: status
-          description: Only return orders with this status.
-          schema: { type: string, example: Pending }
+          description: Only return orders with this status (case-insensitive).
+          schema: { type: string, enum: [pending, shipped, delivered], example: pending }
       responses:
         '200':
           description: A page of orders (`result` is empty when nothing matches).
@@ -39,7 +39,7 @@ paths:
                     type: integer
                     description: Total orders matching the filter.
         '400':
-          description: Invalid page, pageSize or status.
+          description: Invalid page, pageSize or status (status must be one of pending, shipped, delivered).
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
