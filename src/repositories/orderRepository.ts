@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Db } from '../db/connection.js';
-import type { CreateOrderDTO, Order, OrderItem, OrderQuery } from '../models/order.js';
+import type { CreateOrderDTO, Order, OrderItem, OrderQuery, UpdateOrderDTO } from '../models/order.js';
 
 interface OrderRow {
   id: string;
@@ -86,5 +86,61 @@ export class OrderRepository {
       createdAt: r.created_at,
       items: items.filter((i) => i.order_id === r.id).map(toItem),
     }));
+  }
+
+  getOrderById(id: string): Order | undefined {
+    const row = this.db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as OrderRow | undefined;
+    if (!row) return undefined;
+    const itemRows = this.db
+      .prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY rowid')
+      .all(id) as ItemRow[];
+    return {
+      id: row.id,
+      customerId: row.customer_id,
+      totalAmount: row.total_amount,
+      status: row.status,
+      createdAt: row.created_at,
+      items: itemRows.map(toItem),
+    };
+  }
+
+  updateOrder(id: string, dto: UpdateOrderDTO): Order {
+    const existing = this.getOrderById(id);
+    if (!existing) {
+      throw new Error(`Order with id ${id} not found`);
+    }
+
+    const updatedStatus = dto.status !== undefined ? dto.status : existing.status;
+    const updatedOrder: Order = {
+      id,
+      customerId: dto.customerId,
+      totalAmount: dto.totalAmount,
+      status: updatedStatus,
+      createdAt: existing.createdAt,
+      items: dto.items.map((i) => ({
+        id: this.newId(),
+        productId: i.productId,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+      })),
+    };
+
+    const updateOrderStmt = this.db.prepare(
+      'UPDATE orders SET customer_id = ?, total_amount = ?, status = ? WHERE id = ?',
+    );
+    const deleteItemsStmt = this.db.prepare('DELETE FROM order_items WHERE order_id = ?');
+    const insertItemStmt = this.db.prepare(
+      'INSERT INTO order_items (id, order_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?, ?)',
+    );
+
+    this.db.transaction(() => {
+      updateOrderStmt.run(updatedOrder.customerId, updatedOrder.totalAmount, updatedOrder.status, id);
+      deleteItemsStmt.run(id);
+      for (const i of updatedOrder.items) {
+        insertItemStmt.run(i.id, id, i.productId, i.quantity, i.unitPrice);
+      }
+    })();
+
+    return updatedOrder;
   }
 }

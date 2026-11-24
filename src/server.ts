@@ -1,45 +1,15 @@
 import express from 'express';
 import { createConnection, type Db } from './db/connection.js';
 import { migrate } from './db/migrate.js';
-import type { CreateOrderDTO } from './models/order.js';
+import type { CreateOrderDTO, UpdateOrderDTO } from './models/order.js';
 import { OrderRepository } from './repositories/orderRepository.js';
+import {
+  validateCreateOrderMiddleware,
+  validateUpdateOrderMiddleware,
+} from './middleware/validation.js';
 
 const MAX_PAGE_SIZE = 100;
 const DEFAULT_PAGE_SIZE = 10;
-
-const isNonEmptyString = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0;
-const isNonNegativeNumber = (v: unknown): v is number =>
-  typeof v === 'number' && Number.isFinite(v) && v >= 0;
-
-function validateCreateOrder(body: unknown): { dto?: CreateOrderDTO; errors: string[] } {
-  const errors: string[] = [];
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-    return { errors: ['Request body must be a JSON object'] };
-  }
-  const b = body as Record<string, unknown>;
-  if (!isNonEmptyString(b.customerId)) errors.push('customerId is required and must be a non-empty string');
-  if (!isNonNegativeNumber(b.totalAmount)) errors.push('totalAmount is required and must be a number >= 0');
-  if (!Array.isArray(b.items)) {
-    errors.push('items is required and must be an array');
-  } else if (b.items.length === 0) {
-    errors.push('Order must contain at least one item.');
-  } else {
-    const quantityErrors = new Set<string>();
-    b.items.forEach((item: unknown, idx: number) => {
-      const it = (typeof item === 'object' && item !== null ? item : {}) as Record<string, unknown>;
-      if (!isNonEmptyString(it.productId)) errors.push(`items[${idx}].productId is required and must be a non-empty string`);
-      const q = it.quantity;
-      if (typeof q !== 'number' || !Number.isFinite(q) || q < 1) {
-        quantityErrors.add('Item quantity must be at least 1.');
-      } else if (!Number.isInteger(q)) {
-        quantityErrors.add('Item quantity must be a whole number.');
-      }
-      if (!isNonNegativeNumber(it.unitPrice)) errors.push(`items[${idx}].unitPrice is required and must be a number >= 0`);
-    });
-    errors.push(...quantityErrors);
-  }
-  return errors.length > 0 ? { errors } : { dto: b as unknown as CreateOrderDTO, errors };
-}
 
 function parsePositiveInt(raw: unknown, name: string, errors: string[], fallback: number, max?: number): number {
   if (raw === undefined) return fallback;
@@ -61,14 +31,31 @@ export function createApp(db: Db = createConnection(), repo?: OrderRepository): 
   const app = express();
   app.use(express.json());
 
-  app.post('/orders', (req, res, next) => {
-    const { dto, errors } = validateCreateOrder(req.body);
-    if (!dto) {
-      res.status(400).json({ error: errors.join('; '), errors });
-      return;
-    }
+  app.post('/orders', validateCreateOrderMiddleware, (req, res, next) => {
+    const dto = (req as express.Request & { validatedOrder: CreateOrderDTO }).validatedOrder;
     try {
       res.status(201).json(orders.createOrder(dto));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.put('/orders/:id', validateUpdateOrderMiddleware, (req, res, next) => {
+    const { id } = req.params;
+    const dto = (req as express.Request & { validatedOrder: UpdateOrderDTO }).validatedOrder;
+    try {
+      const existing = orders.getOrderById(id);
+      if (!existing) {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+      if (existing.status.trim().toLowerCase() === 'delivered') {
+        const errorMsg = 'Cannot update an order that has already been delivered';
+        res.status(400).json({ error: errorMsg, errors: [errorMsg] });
+        return;
+      }
+      const updated = orders.updateOrder(id, dto);
+      res.status(200).json(updated);
     } catch (err) {
       next(err);
     }
